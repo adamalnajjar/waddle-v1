@@ -1,0 +1,162 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Consultant;
+use App\Models\ConsultationRequest;
+use App\Models\User;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+
+class ConsultantMatchingService
+{
+    /**
+     * Find the best matching consultant for a consultation request.
+     */
+    public function findMatch(ConsultationRequest $request): ?Consultant
+    {
+        $user = $request->user;
+        $techStack = $request->tech_stack ?? [];
+        $excludedConsultants = $request->excluded_consultants ?? [];
+
+        // Get available consultants
+        $consultants = Consultant::available()
+            ->whereNotIn('id', $excludedConsultants)
+            ->with('user', 'availability')
+            ->get();
+
+        if ($consultants->isEmpty()) {
+            Log::info('No available consultants found', [
+                'request_id' => $request->id,
+            ]);
+            return null;
+        }
+
+        // Score each consultant
+        $scoredConsultants = $consultants->map(function ($consultant) use ($techStack, $user) {
+            $score = $this->calculateMatchScore($consultant, $techStack, $user);
+            return [
+                'consultant' => $consultant,
+                'score' => $score,
+            ];
+        });
+
+        // Sort by score (highest first) and prioritize subscribers
+        $sorted = $scoredConsultants->sortByDesc(function ($item) use ($user) {
+            $priorityBonus = $user->hasActiveSubscription() ? 100 : 0;
+            return $item['score'] + $priorityBonus;
+        });
+
+        $bestMatch = $sorted->first();
+
+        if ($bestMatch && $bestMatch['score'] > 0) {
+            Log::info('Consultant matched', [
+                'request_id' => $request->id,
+                'consultant_id' => $bestMatch['consultant']->id,
+                'score' => $bestMatch['score'],
+            ]);
+            return $bestMatch['consultant'];
+        }
+
+        Log::info('No suitable consultant match found', [
+            'request_id' => $request->id,
+            'tech_stack' => $techStack,
+        ]);
+
+        return null;
+    }
+
+    /**
+     * Calculate match score between consultant and request.
+     */
+    private function calculateMatchScore(Consultant $consultant, array $techStack, User $user): int
+    {
+        $score = 0;
+        $specializations = $consultant->specializations ?? [];
+
+        // Tech stack match (0-50 points)
+        if (!empty($techStack) && !empty($specializations)) {
+            $matchCount = count(array_intersect(
+                array_map('strtolower', $techStack),
+                array_map('strtolower', $specializations)
+            ));
+            $score += min(50, $matchCount * 10);
+        }
+
+        // Availability score (0-20 points)
+        if ($this->isCurrentlyAvailable($consultant)) {
+            $score += 20;
+        }
+
+        // Rating bonus (0-20 points)
+        $avgRating = $this->getAverageRating($consultant);
+        if ($avgRating) {
+            $score += (int) ($avgRating * 4); // Max 20 points for 5-star rating
+        }
+
+        // Experience bonus (0-10 points based on completed consultations)
+        $completedCount = $consultant->consultations()
+            ->where('status', 'completed')
+            ->count();
+        $score += min(10, $completedCount);
+
+        return $score;
+    }
+
+    /**
+     * Check if consultant is currently available based on their schedule.
+     */
+    private function isCurrentlyAvailable(Consultant $consultant): bool
+    {
+        $now = now();
+        $dayOfWeek = $now->dayOfWeek;
+        $currentTime = $now->format('H:i:s');
+
+        return $consultant->availability()
+            ->active()
+            ->forDay($dayOfWeek)
+            ->where('start_time', '<=', $currentTime)
+            ->where('end_time', '>=', $currentTime)
+            ->exists();
+    }
+
+    /**
+     * Get average rating for a consultant.
+     */
+    private function getAverageRating(Consultant $consultant): ?float
+    {
+        $avg = $consultant->consultations()
+            ->whereNotNull('user_rating')
+            ->avg('user_rating');
+
+        return $avg ? round($avg, 2) : null;
+    }
+
+    /**
+     * Match a consultation request and update its status.
+     */
+    public function matchAndUpdate(ConsultationRequest $request): bool
+    {
+        $request->update(['status' => ConsultationRequest::STATUS_MATCHING]);
+
+        $consultant = $this->findMatch($request);
+
+        if ($consultant) {
+            $request->update([
+                'matched_consultant_id' => $consultant->id,
+                'status' => ConsultationRequest::STATUS_MATCHED,
+                'matched_at' => now(),
+            ]);
+
+            // TODO: Send notification to consultant
+            // TODO: Send notification to user
+
+            return true;
+        }
+
+        // No match found, keep in matching status
+        // Could implement a retry mechanism or notify user
+        return false;
+    }
+}
+
