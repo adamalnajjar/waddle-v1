@@ -49,10 +49,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Apply theme to DOM
   const applyTheme = useCallback((newTheme: Theme) => {
-    console.log('[ThemeContext] applyTheme called with:', newTheme);
-    
     const resolved = newTheme === 'system' ? getSystemTheme() : newTheme;
-    console.log('[ThemeContext] Resolved theme:', resolved);
     
     setResolvedTheme(resolved);
     
@@ -68,14 +65,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     // Method 3: style property (Firefox fallback)
     root.style.colorScheme = resolved;
-    
-    console.log('[ThemeContext] Applied. Classes:', root.className, 'data-theme:', root.getAttribute('data-theme'));
   }, []);
 
   // Set theme (called by user action)
   const setTheme = useCallback((newTheme: Theme) => {
-    console.log('[ThemeContext] setTheme called with:', newTheme);
-    
     // Update state
     setThemeState(newTheme);
     

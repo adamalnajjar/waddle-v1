@@ -3,7 +3,11 @@ import { Outlet, useLocation, Link } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { cn } from '../../lib/utils';
 
-export const Layout: React.FC = () => {
+interface LayoutProps {
+  children?: React.ReactNode;
+}
+
+export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
 
@@ -15,7 +19,7 @@ export const Layout: React.FC = () => {
         // Don't add container padding on homepage - it handles its own layout
         !isHomePage && 'container py-8 pt-24'
       )}>
-        <Outlet />
+        {children || <Outlet />}
       </main>
       <Footer />
     </div>

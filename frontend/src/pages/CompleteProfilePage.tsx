@@ -10,7 +10,6 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Alert, AlertDescription } from '../components/ui/Alert';
 import { 
   Camera, 
-  User, 
   Upload,
   CheckCircle2,
   Sparkles,

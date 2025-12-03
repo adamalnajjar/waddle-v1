@@ -5,7 +5,7 @@ import { problemApi, technologyApi } from '../services/api';
 import { Button } from '../components/ui/Button';
 import { Label } from '../components/ui/Label';
 import { Textarea } from '../components/ui/Textarea';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
 import { Alert, AlertDescription } from '../components/ui/Alert';
 import { TokenPurchaseModal } from '../components/TokenPurchaseModal';
 import { 
@@ -23,7 +23,7 @@ import {
   Search
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import type { Technology, ProblemAttachment } from '../types';
+import type { Technology } from '../types';
 
 const FILE_ICONS: Record<string, React.ReactNode> = {
   'image': <Image className="h-4 w-4" />,
@@ -234,7 +234,7 @@ export const SubmitProblemPage: React.FC = () => {
         formData.append(`attachments[${index}]`, file);
       });
 
-      const response = await problemApi.submit(formData);
+      await problemApi.submit(formData);
       
       // Navigate to the problem status page or dashboard
       navigate('/dashboard', { 

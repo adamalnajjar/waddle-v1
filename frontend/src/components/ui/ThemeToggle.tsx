@@ -19,7 +19,6 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className }) => {
     const nextIndex = (currentIndex + 1) % themes.length;
     const newTheme = themes[nextIndex];
     
-    console.log('[ThemeToggle] Cycling theme:', theme, '->', newTheme);
     setTheme(newTheme);
   };
 
