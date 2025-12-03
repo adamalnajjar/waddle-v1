@@ -37,7 +37,7 @@ export const useWebSocket = ({
   maxReconnectAttempts = 5,
 }: WebSocketConfig) => {
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<WebSocketState>({
     isConnected: false,
     isConnecting: false,
