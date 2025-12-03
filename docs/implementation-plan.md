@@ -204,7 +204,7 @@ When no suitable consultants are available during business hours, offer work to 
 - `submission_fee` (integer, tokens)
 - `draft_expires_at` (timestamp, nullable)
 - `submitted_at` (timestamp, nullable)
-- `refunded_at` (timestamp, nullable) - tracks when refund occurred, prevents duplicate refunds
+- `refunded_at` (timestamp, nullable) - prevents duplicate refunds
 - `created_at`, `updated_at`
 
 **New: problem_technologies table (pivot):**
@@ -378,4 +378,3 @@ When no suitable consultants are available during business hours, offer work to 
 - [ ] Users refunded if no consultant accepts
 - [ ] Consultants can manage their work and calendar
 - [ ] Surge pricing available for off-hours work
-
