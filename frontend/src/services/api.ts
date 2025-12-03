@@ -59,6 +59,8 @@ export const authApi = {
   register: (data: {
     first_name: string;
     last_name: string;
+    username: string;
+    date_of_birth: string;
     email: string;
     password: string;
     password_confirmation: string;
@@ -100,7 +102,26 @@ export const userApi = {
     first_name?: string;
     last_name?: string;
     email?: string;
+    bio?: string;
+    development_competency?: string;
   }) => api.put('/profile', data),
+
+  completeProfile: (data: FormData) => 
+    api.post('/profile/complete', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
+
+  uploadProfilePhoto: (photo: File) => {
+    const formData = new FormData();
+    formData.append('profile_photo', photo);
+    return api.post('/profile/photo', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
 
   updatePassword: (data: {
     current_password: string;

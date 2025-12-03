@@ -24,6 +24,8 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
+            'username' => 'required|string|max:50|unique:users|alpha_dash',
+            'date_of_birth' => 'required|date|before:-13 years', // Must be at least 13 years old
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', PasswordRule::min(8)->mixedCase()->numbers()->symbols()],
             'role' => 'sometimes|in:user,consultant',
@@ -39,6 +41,8 @@ class AuthController extends Controller
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
+            'username' => $request->username,
+            'date_of_birth' => $request->date_of_birth,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role ?? User::ROLE_USER,
@@ -52,7 +56,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Registration successful. Please verify your email.',
+            'message' => 'Registration successful. Please complete your profile.',
             'user' => $this->formatUserResponse($user),
             'token' => $token,
         ], 201);
@@ -400,8 +404,14 @@ class AuthController extends Controller
             'id' => $user->id,
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
+            'username' => $user->username,
             'full_name' => $user->full_name,
             'email' => $user->email,
+            'date_of_birth' => $user->date_of_birth,
+            'bio' => $user->bio,
+            'profile_photo_url' => $user->profile_photo_url,
+            'development_competency' => $user->development_competency,
+            'profile_completed_at' => $user->profile_completed_at,
             'role' => $user->role,
             'tokens_balance' => $user->tokens_balance,
             'email_verified_at' => $user->email_verified_at,

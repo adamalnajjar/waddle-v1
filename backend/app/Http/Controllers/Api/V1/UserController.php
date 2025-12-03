@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 
@@ -37,6 +38,8 @@ class UserController extends Controller
             'first_name' => 'sometimes|string|max:255',
             'last_name' => 'sometimes|string|max:255',
             'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
+            'bio' => 'sometimes|nullable|string|max:500',
+            'development_competency' => 'sometimes|nullable|in:beginner,intermediate,advanced,senior',
         ]);
 
         if ($validator->fails()) {
@@ -46,9 +49,9 @@ class UserController extends Controller
             ], 422);
         }
 
-        $oldValues = $user->only(['first_name', 'last_name', 'email']);
+        $oldValues = $user->only(['first_name', 'last_name', 'email', 'bio', 'development_competency']);
         
-        $user->update($request->only(['first_name', 'last_name', 'email']));
+        $user->update($request->only(['first_name', 'last_name', 'email', 'bio', 'development_competency']));
 
         AuditLog::log(
             'profile_updated',
@@ -56,12 +59,106 @@ class UserController extends Controller
             User::class,
             $user->id,
             $oldValues,
-            $user->only(['first_name', 'last_name', 'email'])
+            $user->only(['first_name', 'last_name', 'email', 'bio', 'development_competency'])
         );
 
         return response()->json([
             'message' => 'Profile updated successfully',
             'user' => $this->formatProfileResponse($user->fresh()),
+        ]);
+    }
+
+    /**
+     * Complete user profile (post-registration).
+     */
+    public function completeProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // Check if profile is already completed
+        if ($user->hasCompletedProfile()) {
+            return response()->json([
+                'message' => 'Profile already completed',
+                'user' => $this->formatProfileResponse($user),
+            ]);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'bio' => 'required|string|min:10|max:500',
+            'development_competency' => 'required|in:beginner,intermediate,advanced,senior',
+            'profile_photo' => 'sometimes|nullable|image|mimes:jpeg,png,gif,webp|max:5120', // 5MB
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Handle profile photo upload
+        $photoPath = null;
+        if ($request->hasFile('profile_photo')) {
+            $photoPath = $request->file('profile_photo')->store('profile-photos', 'public');
+            
+            // Delete old photo if exists
+            if ($user->profile_photo_path) {
+                Storage::disk('public')->delete($user->profile_photo_path);
+            }
+        }
+
+        // Update user
+        $updateData = [
+            'bio' => $request->bio,
+            'development_competency' => $request->development_competency,
+            'profile_completed_at' => now(),
+        ];
+
+        if ($photoPath) {
+            $updateData['profile_photo_path'] = $photoPath;
+        }
+
+        $user->update($updateData);
+
+        AuditLog::log('profile_completed', $user->id, User::class, $user->id);
+
+        return response()->json([
+            'message' => 'Profile completed successfully',
+            'user' => $this->formatProfileResponse($user->fresh()),
+        ]);
+    }
+
+    /**
+     * Upload/update profile photo.
+     */
+    public function uploadPhoto(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'profile_photo' => 'required|image|mimes:jpeg,png,gif,webp|max:5120', // 5MB
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        // Delete old photo if exists
+        if ($user->profile_photo_path) {
+            Storage::disk('public')->delete($user->profile_photo_path);
+        }
+
+        // Store new photo
+        $photoPath = $request->file('profile_photo')->store('profile-photos', 'public');
+        
+        $user->update(['profile_photo_path' => $photoPath]);
+
+        return response()->json([
+            'message' => 'Profile photo updated successfully',
+            'profile_photo_url' => $user->profile_photo_url,
         ]);
     }
 
@@ -224,8 +321,14 @@ class UserController extends Controller
             'id' => $user->id,
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
+            'username' => $user->username,
             'full_name' => $user->full_name,
             'email' => $user->email,
+            'date_of_birth' => $user->date_of_birth,
+            'bio' => $user->bio,
+            'profile_photo_url' => $user->profile_photo_url,
+            'development_competency' => $user->development_competency,
+            'profile_completed_at' => $user->profile_completed_at,
             'role' => $user->role,
             'tokens_balance' => $user->tokens_balance,
             'email_verified_at' => $user->email_verified_at,

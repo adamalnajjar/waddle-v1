@@ -18,6 +18,8 @@ export const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
+    username: '',
+    date_of_birth: '',
     email: '',
     password: '',
     password_confirmation: '',
@@ -45,7 +47,8 @@ export const RegisterPage: React.FC = () => {
     const result = await dispatch(register(formData));
     
     if (register.fulfilled.match(result)) {
-      navigate('/dashboard');
+      // Redirect to profile completion for new users
+      navigate('/complete-profile');
     }
   };
 
@@ -128,6 +131,33 @@ export const RegisterPage: React.FC = () => {
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                name="username"
+                placeholder="johndoe"
+                value={formData.username}
+                onChange={handleChange}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                This will be your unique identifier on the platform
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="date_of_birth">Date of Birth</Label>
+              <Input
+                id="date_of_birth"
+                name="date_of_birth"
+                type="date"
+                value={formData.date_of_birth}
+                onChange={handleChange}
+                required
+              />
             </div>
 
             <div className="space-y-2">

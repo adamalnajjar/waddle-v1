@@ -3,8 +3,14 @@ export interface User {
   id: number;
   first_name: string;
   last_name: string;
+  username: string;
   full_name: string;
   email: string;
+  date_of_birth: string | null;
+  bio: string | null;
+  profile_photo_url: string | null;
+  development_competency: 'beginner' | 'intermediate' | 'advanced' | 'senior' | null;
+  profile_completed_at: string | null;
   role: 'user' | 'consultant' | 'admin';
   tokens_balance: number;
   email_verified_at: string | null;
@@ -42,10 +48,45 @@ export interface LoginCredentials {
 export interface RegisterData {
   first_name: string;
   last_name: string;
+  username: string;
+  date_of_birth: string;
   email: string;
   password: string;
   password_confirmation: string;
   role?: 'user' | 'consultant';
+}
+
+// Technology types
+export interface Technology {
+  id: number;
+  name: string;
+  slug: string;
+  icon_url: string | null;
+}
+
+// Problem submission types
+export interface ProblemSubmission {
+  id: number;
+  user_id: number;
+  problem_statement: string;
+  error_description: string | null;
+  status: 'draft' | 'submitted' | 'matching' | 'matched' | 'in_progress' | 'completed' | 'refunded' | 'cancelled';
+  submission_fee: number;
+  draft_expires_at: string | null;
+  submitted_at: string | null;
+  technologies: Technology[];
+  attachments: ProblemAttachment[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProblemAttachment {
+  id: number;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  human_size: string;
+  url: string;
 }
 
 export interface AuthResponse {

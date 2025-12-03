@@ -56,6 +56,8 @@ Route::prefix('v1')->group(function () {
         // User profile routes
         Route::get('/profile', [UserController::class, 'show']);
         Route::put('/profile', [UserController::class, 'update']);
+        Route::post('/profile/complete', [UserController::class, 'completeProfile']);
+        Route::post('/profile/photo', [UserController::class, 'uploadPhoto']);
         Route::put('/profile/password', [UserController::class, 'updatePassword']);
         Route::delete('/profile', [UserController::class, 'destroy']);
         
