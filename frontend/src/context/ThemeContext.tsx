@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -10,35 +10,76 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('waddle-theme') as Theme) || 'system';
+// Helper to safely access localStorage
+const getStoredTheme = (): Theme => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = localStorage.getItem('waddle-theme');
+      if (stored === 'light' || stored === 'dark' || stored === 'system') {
+        return stored;
+      }
     }
-    return 'system';
-  });
+  } catch {
+    // localStorage might be blocked (Firefox privacy mode, etc.)
+  }
+  return 'system';
+};
 
+const setStoredTheme = (theme: Theme) => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('waddle-theme', theme);
+    }
+  } catch {
+    // localStorage might be blocked
+  }
+};
+
+const getSystemTheme = (): 'light' | 'dark' => {
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return 'dark';
+};
+
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setThemeState] = useState<Theme>('system');
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
+  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    const root = window.document.documentElement;
+  // Apply theme to DOM
+  const applyTheme = useCallback((newTheme: Theme) => {
+    const resolved = newTheme === 'system' ? getSystemTheme() : newTheme;
+    setResolvedTheme(resolved);
     
-    const getSystemTheme = (): 'light' | 'dark' => {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    };
+    // Apply to document
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(resolved);
+    
+    // Also set a data attribute as fallback
+    root.setAttribute('data-theme', resolved);
+  }, []);
 
-    const applyTheme = (newTheme: Theme) => {
-      const resolved = newTheme === 'system' ? getSystemTheme() : newTheme;
-      setResolvedTheme(resolved);
-      
-      root.classList.remove('light', 'dark');
-      root.classList.add(resolved);
-      localStorage.setItem('waddle-theme', newTheme);
-    };
+  // Set theme (called by user action)
+  const setTheme = useCallback((newTheme: Theme) => {
+    setThemeState(newTheme);
+    setStoredTheme(newTheme);
+    applyTheme(newTheme);
+  }, [applyTheme]);
 
-    applyTheme(theme);
+  // Initialize on mount
+  useEffect(() => {
+    const storedTheme = getStoredTheme();
+    setThemeState(storedTheme);
+    applyTheme(storedTheme);
+    setMounted(true);
+  }, [applyTheme]);
 
-    // Listen for system theme changes
+  // Listen for system theme changes
+  useEffect(() => {
+    if (!mounted) return;
+
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = () => {
       if (theme === 'system') {
@@ -48,7 +89,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme]);
+  }, [theme, mounted, applyTheme]);
 
   return (
     <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
