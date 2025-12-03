@@ -126,9 +126,9 @@ class ConsultationController extends Controller
         $consultation = Consultation::with(['consultant.user', 'consultationRequest', 'messages', 'files'])
             ->findOrFail($id);
 
-        // Verify access
+        // Verify access - user must be owner OR the assigned consultant
         if ($consultation->user_id !== $user->id && 
-            ($user->consultantProfile && $consultation->consultant_id !== $user->consultantProfile->id)) {
+            (!$user->consultantProfile || $consultation->consultant_id !== $user->consultantProfile->id)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -355,7 +355,14 @@ class ConsultationController extends Controller
      */
     public function messages(Request $request, int $id): JsonResponse
     {
+        $user = $request->user();
         $consultation = Consultation::findOrFail($id);
+
+        // Verify access - user must be owner OR the assigned consultant
+        if ($consultation->user_id !== $user->id && 
+            (!$user->consultantProfile || $consultation->consultant_id !== $user->consultantProfile->id)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
         
         $messages = $consultation->messages()
             ->with('user')
@@ -376,7 +383,14 @@ class ConsultationController extends Controller
             'metadata' => 'sometimes|array',
         ]);
 
+        $user = $request->user();
         $consultation = Consultation::findOrFail($id);
+
+        // Verify access - user must be owner OR the assigned consultant
+        if ($consultation->user_id !== $user->id && 
+            (!$user->consultantProfile || $consultation->consultant_id !== $user->consultantProfile->id)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
         $message = ConsultationMessage::create([
             'consultation_id' => $consultation->id,
@@ -399,7 +413,14 @@ class ConsultationController extends Controller
      */
     public function files(Request $request, int $id): JsonResponse
     {
+        $user = $request->user();
         $consultation = Consultation::findOrFail($id);
+
+        // Verify access - user must be owner OR the assigned consultant
+        if ($consultation->user_id !== $user->id && 
+            (!$user->consultantProfile || $consultation->consultant_id !== $user->consultantProfile->id)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
         
         $files = $consultation->files()
             ->safe()
@@ -419,7 +440,15 @@ class ConsultationController extends Controller
             'file' => 'required|file|max:10240', // 10MB
         ]);
 
+        $user = $request->user();
         $consultation = Consultation::findOrFail($id);
+
+        // Verify access - user must be owner OR the assigned consultant
+        if ($consultation->user_id !== $user->id && 
+            (!$user->consultantProfile || $consultation->consultant_id !== $user->consultantProfile->id)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $file = $request->file('file');
 
         if (!ConsultationFile::isAllowedMimeType($file->getMimeType())) {
