@@ -23,6 +23,14 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     public const ROLE_ADMIN = 'admin';
 
     /**
+     * Development competency levels
+     */
+    public const COMPETENCY_BEGINNER = 'beginner';
+    public const COMPETENCY_INTERMEDIATE = 'intermediate';
+    public const COMPETENCY_ADVANCED = 'advanced';
+    public const COMPETENCY_SENIOR = 'senior';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -30,6 +38,8 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     protected $fillable = [
         'first_name',
         'last_name',
+        'username',
+        'date_of_birth',
         'email',
         'password',
         'role',
@@ -37,6 +47,10 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         'email_verified_at',
         'two_factor_secret',
         'two_factor_enabled',
+        'bio',
+        'profile_photo_path',
+        'development_competency',
+        'profile_completed_at',
     ];
 
     /**
@@ -62,7 +76,44 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
             'password' => 'hashed',
             'two_factor_enabled' => 'boolean',
             'tokens_balance' => 'integer',
+            'date_of_birth' => 'date',
+            'profile_completed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Check if the user has completed their profile.
+     */
+    public function hasCompletedProfile(): bool
+    {
+        return $this->profile_completed_at !== null;
+    }
+
+    /**
+     * Check if the user needs to complete their profile.
+     */
+    public function needsProfileCompletion(): bool
+    {
+        return $this->profile_completed_at === null;
+    }
+
+    /**
+     * Mark the profile as completed.
+     */
+    public function markProfileCompleted(): void
+    {
+        $this->update(['profile_completed_at' => now()]);
+    }
+
+    /**
+     * Get the profile photo URL.
+     */
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        if ($this->profile_photo_path) {
+            return asset('storage/' . $this->profile_photo_path);
+        }
+        return null;
     }
 
     /**
@@ -167,5 +218,21 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     public function hasActiveSubscription(): bool
     {
         return $this->subscription && $this->subscription->isActive();
+    }
+
+    /**
+     * Get the problem submissions for the user.
+     */
+    public function problemSubmissions()
+    {
+        return $this->hasMany(ProblemSubmission::class);
+    }
+
+    /**
+     * Get the user's draft problem submissions.
+     */
+    public function draftProblems()
+    {
+        return $this->problemSubmissions()->where('status', 'draft');
     }
 }
