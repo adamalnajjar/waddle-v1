@@ -10,11 +10,17 @@ interface ThemeToggleProps {
 export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className }) => {
   const { theme, setTheme } = useTheme();
 
-  const cycleTheme = () => {
+  const cycleTheme = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     const themes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system'];
     const currentIndex = themes.indexOf(theme);
     const nextIndex = (currentIndex + 1) % themes.length;
-    setTheme(themes[nextIndex]);
+    const newTheme = themes[nextIndex];
+    
+    console.log('[ThemeToggle] Cycling theme:', theme, '->', newTheme);
+    setTheme(newTheme);
   };
 
   const getIcon = () => {
@@ -41,7 +47,9 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className }) => {
 
   return (
     <button
+      type="button"
       onClick={cycleTheme}
+      onMouseDown={(e) => e.preventDefault()}
       className={cn(
         'flex items-center justify-center w-9 h-9 rounded-lg transition-colors',
         'hover:bg-muted/80 active:scale-95',

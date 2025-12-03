@@ -49,23 +49,49 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Apply theme to DOM
   const applyTheme = useCallback((newTheme: Theme) => {
+    console.log('[ThemeContext] applyTheme called with:', newTheme);
+    
     const resolved = newTheme === 'system' ? getSystemTheme() : newTheme;
+    console.log('[ThemeContext] Resolved theme:', resolved);
+    
     setResolvedTheme(resolved);
     
-    // Apply to document
+    // Apply to document - try multiple methods for Firefox compatibility
     const root = document.documentElement;
+    
+    // Method 1: classList
     root.classList.remove('light', 'dark');
     root.classList.add(resolved);
     
-    // Also set a data attribute as fallback
+    // Method 2: data attribute
     root.setAttribute('data-theme', resolved);
+    
+    // Method 3: style property (Firefox fallback)
+    root.style.colorScheme = resolved;
+    
+    console.log('[ThemeContext] Applied. Classes:', root.className, 'data-theme:', root.getAttribute('data-theme'));
   }, []);
 
   // Set theme (called by user action)
   const setTheme = useCallback((newTheme: Theme) => {
+    console.log('[ThemeContext] setTheme called with:', newTheme);
+    
+    // Update state
     setThemeState(newTheme);
+    
+    // Store in localStorage
     setStoredTheme(newTheme);
+    
+    // Apply immediately to DOM (don't wait for React re-render)
     applyTheme(newTheme);
+    
+    // Force a re-render by toggling a class (Firefox workaround)
+    requestAnimationFrame(() => {
+      document.body.style.display = 'none';
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      document.body.offsetHeight; // Force reflow
+      document.body.style.display = '';
+    });
   }, [applyTheme]);
 
   // Initialize on mount
