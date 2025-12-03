@@ -177,7 +177,7 @@ class MatchProblemSubmission extends Page
 
         $consultant = Consultant::findOrFail($consultantId);
         
-        if (!$consultant->can_receive_surge_pricing) {
+        if (!$consultant->is_surge_available) {
             Notification::make()
                 ->title('Consultant has not opted into surge pricing')
                 ->warning()
@@ -210,6 +210,7 @@ class MatchProblemSubmission extends Page
                 ->success()
                 ->send();
 
+            $this->redirect(ProblemSubmissionResource::getUrl('view', ['record' => $this->record]));
         } catch (\Exception $e) {
             DB::rollBack();
             Notification::make()

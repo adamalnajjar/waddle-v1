@@ -118,7 +118,7 @@
                                 <span class="text-gray-500 dark:text-gray-400">
                                     Hourly: {{ $consultant->hourly_rate }} tokens
                                 </span>
-                                @if($consultant->can_receive_surge_pricing)
+                                @if($consultant->is_surge_available)
                                     <x-filament::button 
                                         wire:click="inviteSingleWithSurge({{ $consultant->id }})"
                                         color="warning"

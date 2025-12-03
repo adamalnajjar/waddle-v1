@@ -159,7 +159,7 @@ export const NotificationsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="container py-8 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

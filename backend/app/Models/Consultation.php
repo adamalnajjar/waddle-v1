@@ -117,7 +117,7 @@ class Consultation extends Model
      */
     public function canEnd(): bool
     {
-        return $this->status === self::STATUS_IN_PROGRESS;
+        return $this->status === self::STATUS_IN_PROGRESS && $this->started_at !== null;
     }
 
     /**

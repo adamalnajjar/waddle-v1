@@ -70,7 +70,8 @@ export const ProfilePage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="container py-8">
+      <div className="max-w-4xl mx-auto space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Profile</h1>
         <p className="text-muted-foreground mt-1">
@@ -305,6 +306,7 @@ export const ProfilePage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };

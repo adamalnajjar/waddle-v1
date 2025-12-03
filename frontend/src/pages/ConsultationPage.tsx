@@ -383,7 +383,7 @@ export const ConsultationPage: React.FC = () => {
   const isSessionScheduled = consultation.status === 'scheduled';
 
   return (
-    <div className="h-[calc(100vh-12rem)]">
+    <div className="container py-4 h-[calc(100vh-8rem)]">
       {error && (
         <Alert variant="destructive" className="mb-4">
           <AlertDescription>{error}</AlertDescription>

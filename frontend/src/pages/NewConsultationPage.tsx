@@ -239,8 +239,9 @@ export const NewConsultationPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Header */}
+    <div className="container py-8">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
       <div className="mb-8">
         <button
           onClick={() => navigate(-1)}
@@ -353,6 +354,7 @@ export const NewConsultationPage: React.FC = () => {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 };

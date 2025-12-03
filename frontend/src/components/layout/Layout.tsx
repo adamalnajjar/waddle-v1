@@ -1,24 +1,16 @@
 import React from 'react';
-import { Outlet, useLocation, Link } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import { Navbar } from './Navbar';
-import { cn } from '../../lib/utils';
 
 interface LayoutProps {
   children?: React.ReactNode;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const location = useLocation();
-  const isHomePage = location.pathname === '/';
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className={cn(
-        'flex-1',
-        // Don't add container padding on homepage - it handles its own layout
-        !isHomePage && 'container py-8 pt-24'
-      )}>
+      <main className="flex-1 pt-16">
         {children || <Outlet />}
       </main>
       <Footer />

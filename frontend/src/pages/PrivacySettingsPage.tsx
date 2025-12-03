@@ -142,7 +142,8 @@ export const PrivacySettingsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="container py-8">
+      <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -406,6 +407,7 @@ export const PrivacySettingsPage: React.FC = () => {
           </Button>
         </ModalFooter>
       </Modal>
+      </div>
     </div>
   );
 };

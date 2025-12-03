@@ -265,6 +265,13 @@ class ConsultationController extends Controller
             ], 400);
         }
 
+        // Defensive check: ensure started_at exists before calculating duration
+        if (!$consultation->started_at) {
+            return response()->json([
+                'message' => 'Consultation has no start time recorded',
+            ], 400);
+        }
+
         try {
             DB::beginTransaction();
 

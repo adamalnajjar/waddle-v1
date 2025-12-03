@@ -11,6 +11,7 @@ use App\Models\Consultation;
 use App\Models\ProblemSubmission;
 use App\Models\AuditLog;
 use App\Services\TokenService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -755,8 +756,8 @@ class ConsultantController extends Controller
             return response()->json(['message' => 'Consultant profile not found'], 404);
         }
 
-        $startDate = $request->start_date ? now()->parse($request->start_date) : now()->startOfMonth();
-        $endDate = $request->end_date ? now()->parse($request->end_date) : now()->endOfMonth();
+        $startDate = $request->start_date ? Carbon::parse($request->start_date) : now()->startOfMonth();
+        $endDate = $request->end_date ? Carbon::parse($request->end_date) : now()->endOfMonth();
 
         // Get consultations within date range
         $consultations = Consultation::forConsultant($consultant->id)
@@ -808,7 +809,7 @@ class ConsultantController extends Controller
         }
 
         return response()->json([
-            'can_receive_surge_pricing' => $consultant->can_receive_surge_pricing ?? false,
+            'can_receive_surge_pricing' => $consultant->is_surge_available ?? false,
             'notification_start_time' => $consultant->notification_start_time,
             'notification_end_time' => $consultant->notification_end_time,
             'surge_multiplier' => 1.2, // Fixed rate for now
@@ -834,7 +835,7 @@ class ConsultantController extends Controller
         }
 
         $consultant->update([
-            'can_receive_surge_pricing' => $request->can_receive_surge_pricing,
+            'is_surge_available' => $request->can_receive_surge_pricing,
             'notification_start_time' => $request->notification_start_time ?? $consultant->notification_start_time,
             'notification_end_time' => $request->notification_end_time ?? $consultant->notification_end_time,
         ]);
@@ -849,7 +850,7 @@ class ConsultantController extends Controller
         return response()->json([
             'message' => 'Surge pricing settings updated',
             'settings' => [
-                'can_receive_surge_pricing' => $consultant->can_receive_surge_pricing,
+                'can_receive_surge_pricing' => $consultant->is_surge_available,
                 'notification_start_time' => $consultant->notification_start_time,
                 'notification_end_time' => $consultant->notification_end_time,
             ],
