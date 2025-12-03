@@ -97,10 +97,8 @@ class ProblemSubmissionResource extends Resource
                         'warning' => 'submitted',
                         'info' => 'matching',
                         'primary' => 'matched',
-                        'success' => 'in_progress',
-                        'success' => 'completed',
+                        'success' => fn ($state) => in_array($state, ['in_progress', 'completed']),
                         'danger' => 'refunded',
-                        'gray' => 'cancelled',
                     ]),
                 Tables\Columns\TextColumn::make('submission_fee')
                     ->suffix(' tokens')

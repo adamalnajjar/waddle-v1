@@ -505,7 +505,7 @@ class ConsultantController extends Controller
                     'user' => [
                         'id' => $invitation->problemSubmission->user->id,
                         'name' => $invitation->problemSubmission->user->full_name,
-                        'dev_competency' => $invitation->problemSubmission->user->dev_competency,
+                        'dev_competency' => $invitation->problemSubmission->user->development_competency,
                     ],
                     'attachments_count' => $invitation->problemSubmission->attachments->count(),
                 ],
@@ -580,7 +580,7 @@ class ConsultantController extends Controller
                         'id' => $invitation->problemSubmission->user->id,
                         'name' => $invitation->problemSubmission->user->full_name,
                         'email' => $invitation->problemSubmission->user->email,
-                        'dev_competency' => $invitation->problemSubmission->user->dev_competency,
+                        'dev_competency' => $invitation->problemSubmission->user->development_competency,
                         'bio' => $invitation->problemSubmission->user->bio,
                     ],
                 ],

@@ -12,9 +12,9 @@
                     <p class="mt-1 text-sm text-gray-900 dark:text-white">
                         {{ $record->user->full_name }} ({{ $record->user->email }})
                     </p>
-                    @if($record->user->dev_competency)
+                    @if($record->user->development_competency)
                         <x-filament::badge class="mt-1">
-                            {{ ucfirst($record->user->dev_competency) }}
+                            {{ ucfirst($record->user->development_competency) }}
                         </x-filament::badge>
                     @endif
                 </div>

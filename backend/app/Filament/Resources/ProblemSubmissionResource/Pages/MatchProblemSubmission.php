@@ -162,30 +162,31 @@ class MatchProblemSubmission extends Page
 
     public function inviteSingleWithSurge(int $consultantId): void
     {
+        // Check if invitation already exists (before transaction)
+        $existing = ConsultantInvitation::where('problem_submission_id', $this->record->id)
+            ->where('consultant_id', $consultantId)
+            ->first();
+        
+        if ($existing) {
+            Notification::make()
+                ->title('Invitation already sent to this consultant')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $consultant = Consultant::findOrFail($consultantId);
+        
+        if (!$consultant->can_receive_surge_pricing) {
+            Notification::make()
+                ->title('Consultant has not opted into surge pricing')
+                ->warning()
+                ->send();
+            return;
+        }
+
         DB::beginTransaction();
         try {
-            // Check if invitation already exists
-            $existing = ConsultantInvitation::where('problem_submission_id', $this->record->id)
-                ->where('consultant_id', $consultantId)
-                ->first();
-            
-            if ($existing) {
-                Notification::make()
-                    ->title('Invitation already sent to this consultant')
-                    ->warning()
-                    ->send();
-                return;
-            }
-
-            $consultant = Consultant::findOrFail($consultantId);
-            
-            if (!$consultant->can_receive_surge_pricing) {
-                Notification::make()
-                    ->title('Consultant has not opted into surge pricing')
-                    ->warning()
-                    ->send();
-                return;
-            }
 
             ConsultantInvitation::create([
                 'problem_submission_id' => $this->record->id,
