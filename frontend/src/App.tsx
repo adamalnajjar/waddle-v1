@@ -15,6 +15,7 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { CompleteProfilePage } from './pages/CompleteProfilePage';
+import { SubmitProblemPage } from './pages/SubmitProblemPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ProfilePage } from './pages/ProfilePage';
@@ -116,6 +117,14 @@ const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute>
               <NewConsultationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/submit-problem"
+          element={
+            <ProtectedRoute>
+              <SubmitProblemPage />
             </ProtectedRoute>
           }
         />

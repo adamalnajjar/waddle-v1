@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\QuestionnaireController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\GdprController;
+use App\Http\Controllers\Api\V1\TechnologyController;
+use App\Http\Controllers\Api\V1\ProblemController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,6 +41,10 @@ Route::prefix('v1')->group(function () {
     
     // Public subscription plans
     Route::get('/subscription-plans', [SubscriptionController::class, 'index']);
+    
+    // Public technologies
+    Route::get('/technologies', [TechnologyController::class, 'index']);
+    Route::get('/technologies/search', [TechnologyController::class, 'search']);
     
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
@@ -69,9 +75,22 @@ Route::prefix('v1')->group(function () {
         Route::get('/notifications/preferences', [NotificationController::class, 'getPreferences']);
         Route::put('/notifications/preferences', [NotificationController::class, 'updatePreferences']);
         
-        // Questionnaire routes
+        // Questionnaire routes (legacy)
         Route::get('/questionnaire', [QuestionnaireController::class, 'show']);
         Route::post('/questionnaire/submit', [QuestionnaireController::class, 'submit']);
+        
+        // Problem submission routes
+        Route::prefix('problems')->group(function () {
+            Route::get('/', [ProblemController::class, 'index']);
+            Route::get('/{id}', [ProblemController::class, 'show']);
+            Route::post('/draft', [ProblemController::class, 'saveDraft']);
+            Route::put('/{id}/draft', [ProblemController::class, 'updateDraft']);
+            Route::post('/submit', [ProblemController::class, 'submit']);
+            Route::post('/{id}/submit', [ProblemController::class, 'submitDraft']);
+            Route::delete('/{id}', [ProblemController::class, 'destroy']);
+            Route::post('/{id}/attachments', [ProblemController::class, 'addAttachment']);
+            Route::delete('/{problemId}/attachments/{attachmentId}', [ProblemController::class, 'removeAttachment']);
+        });
         
         // Consultation routes
         Route::get('/consultations', [ConsultationController::class, 'index']);

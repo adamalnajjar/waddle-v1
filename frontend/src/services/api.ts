@@ -180,7 +180,7 @@ export const subscriptionApi = {
   cancel: () => api.post('/subscription/cancel'),
 };
 
-// Questionnaire API
+// Questionnaire API (legacy - being replaced by problemApi)
 export const questionnaireApi = {
   get: () => api.get('/questionnaire'),
 
@@ -191,6 +191,65 @@ export const questionnaireApi = {
     urgency: string;
     previous_attempts?: string;
   }) => api.post('/questionnaire/submit', data),
+};
+
+// Technology API
+export const technologyApi = {
+  list: (page = 1, perPage = 50) =>
+    api.get('/technologies', { params: { page, per_page: perPage } }),
+
+  search: (query: string) =>
+    api.get('/technologies/search', { params: { q: query } }),
+};
+
+// Problem Submission API
+export const problemApi = {
+  // List user's problems
+  list: (page = 1) =>
+    api.get('/problems', { params: { page } }),
+
+  // Get single problem
+  get: (id: number) =>
+    api.get(`/problems/${id}`),
+
+  // Save as draft
+  saveDraft: (data: FormData) =>
+    api.post('/problems/draft', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  // Update draft
+  updateDraft: (id: number, data: FormData) =>
+    api.put(`/problems/${id}/draft`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  // Submit problem (charges tokens)
+  submit: (data: FormData) =>
+    api.post('/problems/submit', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  // Submit existing draft
+  submitDraft: (id: number) =>
+    api.post(`/problems/${id}/submit`),
+
+  // Delete draft
+  deleteDraft: (id: number) =>
+    api.delete(`/problems/${id}`),
+
+  // Add attachment to problem
+  addAttachment: (problemId: number, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/problems/${problemId}/attachments`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  // Remove attachment
+  removeAttachment: (problemId: number, attachmentId: number) =>
+    api.delete(`/problems/${problemId}/attachments/${attachmentId}`),
 };
 
 // Consultation API
