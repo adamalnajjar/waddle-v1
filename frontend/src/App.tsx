@@ -26,6 +26,10 @@ import { ConsultantDashboardPage } from './pages/ConsultantDashboardPage';
 import { ConsultantRequestsPage } from './pages/ConsultantRequestsPage';
 import { ConsultantAvailabilityPage } from './pages/ConsultantAvailabilityPage';
 import { ConsultantEarningsPage } from './pages/ConsultantEarningsPage';
+import ConsultantWorkPage from './pages/ConsultantWorkPage';
+import ConsultantWorkDetailPage from './pages/ConsultantWorkDetailPage';
+import ConsultantSchedulePage from './pages/ConsultantSchedulePage';
+import ConsultantSurgeSettingsPage from './pages/ConsultantSurgeSettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { PrivacySettingsPage } from './pages/PrivacySettingsPage';
 import { PricingPage } from './pages/PricingPage';
@@ -188,6 +192,46 @@ const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="consultant">
               <ConsultantDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/consultant/dashboard"
+          element={
+            <ProtectedRoute requiredRole="consultant">
+              <ConsultantDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/consultant/work"
+          element={
+            <ProtectedRoute requiredRole="consultant">
+              <ConsultantWorkPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/consultant/work/:id"
+          element={
+            <ProtectedRoute requiredRole="consultant">
+              <ConsultantWorkDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/consultant/schedule"
+          element={
+            <ProtectedRoute requiredRole="consultant">
+              <ConsultantSchedulePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/consultant/surge-settings"
+          element={
+            <ProtectedRoute requiredRole="consultant">
+              <ConsultantSurgeSettingsPage />
             </ProtectedRoute>
           }
         />

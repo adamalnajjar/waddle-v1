@@ -4,12 +4,86 @@ namespace App\Services;
 
 use App\Models\Consultant;
 use App\Models\ConsultationRequest;
+use App\Models\ProblemSubmission;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 class ConsultantMatchingService
 {
+    /**
+     * Find matching consultants for a problem submission (for admin matching interface).
+     * Returns a collection of consultants with match scores.
+     */
+    public function findMatchingConsultants(ProblemSubmission $problem): Collection
+    {
+        $technologyIds = $problem->technologies->pluck('id')->toArray();
+        
+        // Get available consultants with their technologies
+        $consultants = Consultant::where('is_available', true)
+            ->with(['user', 'technologies'])
+            ->get();
+
+        if ($consultants->isEmpty()) {
+            Log::info('No available consultants found for problem', [
+                'problem_id' => $problem->id,
+            ]);
+            return collect();
+        }
+
+        // Score and filter consultants
+        $scoredConsultants = $consultants->map(function ($consultant) use ($technologyIds, $problem) {
+            $score = $this->calculateProblemMatchScore($consultant, $technologyIds, $problem);
+            $consultant->match_score = $score;
+            return $consultant;
+        });
+
+        // Filter consultants with at least some match and sort by score
+        return $scoredConsultants
+            ->filter(fn ($c) => $c->match_score > 0)
+            ->sortByDesc('match_score')
+            ->values();
+    }
+
+    /**
+     * Calculate match score for problem submission matching.
+     */
+    private function calculateProblemMatchScore(Consultant $consultant, array $technologyIds, ProblemSubmission $problem): int
+    {
+        $score = 0;
+        $consultantTechIds = $consultant->technologies->pluck('id')->toArray();
+
+        // Technology match (0-60 points)
+        if (!empty($technologyIds) && !empty($consultantTechIds)) {
+            $matchCount = count(array_intersect($technologyIds, $consultantTechIds));
+            $totalRequired = count($technologyIds);
+            
+            if ($totalRequired > 0) {
+                $matchPercentage = ($matchCount / $totalRequired) * 100;
+                $score += (int) ($matchPercentage * 0.6); // Max 60 points
+            }
+        }
+
+        // Availability bonus (0-20 points)
+        if ($this->isCurrentlyAvailable($consultant)) {
+            $score += 20;
+        }
+
+        // Rating bonus (0-15 points)
+        $avgRating = $this->getAverageRating($consultant);
+        if ($avgRating) {
+            $score += (int) ($avgRating * 3); // Max 15 points for 5-star rating
+        }
+
+        // Experience bonus (0-5 points)
+        $completedCount = $consultant->consultations()
+            ->where('status', 'completed')
+            ->count();
+        $score += min(5, $completedCount);
+
+        return $score;
+    }
+
     /**
      * Find the best matching consultant for a consultation request.
      */

@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Consultant;
 use App\Models\ConsultantAvailability;
+use App\Models\ConsultantInvitation;
 use App\Models\ConsultationRequest;
 use App\Models\Consultation;
+use App\Models\ProblemSubmission;
 use App\Models\AuditLog;
+use App\Services\TokenService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -458,6 +461,397 @@ class ConsultantController extends Controller
                 'last_page' => $consultations->lastPage(),
                 'per_page' => $consultations->perPage(),
                 'total' => $consultations->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get work invitations for the consultant.
+     */
+    public function invitations(Request $request): JsonResponse
+    {
+        $consultant = $request->user()->consultantProfile;
+
+        if (!$consultant) {
+            return response()->json(['message' => 'Consultant profile not found'], 404);
+        }
+
+        $invitations = ConsultantInvitation::where('consultant_id', $consultant->id)
+            ->with(['problemSubmission.user', 'problemSubmission.technologies'])
+            ->orderBy('invited_at', 'desc')
+            ->paginate(20);
+
+        // Transform invitations for frontend
+        $transformedInvitations = $invitations->getCollection()->map(function ($invitation) {
+            return [
+                'id' => $invitation->id,
+                'status' => $invitation->status,
+                'is_surge_pricing' => $invitation->is_surge_pricing,
+                'surge_multiplier' => $invitation->surge_multiplier,
+                'invited_at' => $invitation->invited_at,
+                'expires_at' => $invitation->expires_at,
+                'responded_at' => $invitation->responded_at,
+                'is_expired' => $invitation->expires_at && $invitation->expires_at->isPast(),
+                'time_remaining' => $invitation->expires_at ? $invitation->expires_at->diffForHumans() : null,
+                'problem' => [
+                    'id' => $invitation->problemSubmission->id,
+                    'problem_statement' => $invitation->problemSubmission->problem_statement,
+                    'error_description' => $invitation->problemSubmission->error_description,
+                    'submission_fee' => $invitation->problemSubmission->submission_fee,
+                    'technologies' => $invitation->problemSubmission->technologies->map(fn($t) => [
+                        'id' => $t->id,
+                        'name' => $t->name,
+                    ]),
+                    'user' => [
+                        'id' => $invitation->problemSubmission->user->id,
+                        'name' => $invitation->problemSubmission->user->full_name,
+                        'dev_competency' => $invitation->problemSubmission->user->dev_competency,
+                    ],
+                    'attachments_count' => $invitation->problemSubmission->attachments->count(),
+                ],
+            ];
+        });
+
+        return response()->json([
+            'invitations' => $transformedInvitations,
+            'pagination' => [
+                'current_page' => $invitations->currentPage(),
+                'last_page' => $invitations->lastPage(),
+                'per_page' => $invitations->perPage(),
+                'total' => $invitations->total(),
+            ],
+            'counts' => [
+                'pending' => ConsultantInvitation::where('consultant_id', $consultant->id)
+                    ->where('status', 'pending')
+                    ->where(function ($q) {
+                        $q->whereNull('expires_at')
+                          ->orWhere('expires_at', '>', now());
+                    })
+                    ->count(),
+                'accepted' => ConsultantInvitation::where('consultant_id', $consultant->id)
+                    ->where('status', 'accepted')
+                    ->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * Show a single invitation.
+     */
+    public function showInvitation(Request $request, int $id): JsonResponse
+    {
+        $consultant = $request->user()->consultantProfile;
+
+        if (!$consultant) {
+            return response()->json(['message' => 'Consultant profile not found'], 404);
+        }
+
+        $invitation = ConsultantInvitation::where('consultant_id', $consultant->id)
+            ->where('id', $id)
+            ->with(['problemSubmission.user', 'problemSubmission.technologies', 'problemSubmission.attachments'])
+            ->firstOrFail();
+
+        return response()->json([
+            'invitation' => [
+                'id' => $invitation->id,
+                'status' => $invitation->status,
+                'is_surge_pricing' => $invitation->is_surge_pricing,
+                'surge_multiplier' => $invitation->surge_multiplier,
+                'invited_at' => $invitation->invited_at,
+                'expires_at' => $invitation->expires_at,
+                'responded_at' => $invitation->responded_at,
+                'is_expired' => $invitation->expires_at && $invitation->expires_at->isPast(),
+                'time_remaining' => $invitation->expires_at ? $invitation->expires_at->diffForHumans() : null,
+                'problem' => [
+                    'id' => $invitation->problemSubmission->id,
+                    'problem_statement' => $invitation->problemSubmission->problem_statement,
+                    'error_description' => $invitation->problemSubmission->error_description,
+                    'submission_fee' => $invitation->problemSubmission->submission_fee,
+                    'technologies' => $invitation->problemSubmission->technologies,
+                    'attachments' => $invitation->problemSubmission->attachments->map(fn($a) => [
+                        'id' => $a->id,
+                        'file_name' => $a->file_name,
+                        'file_type' => $a->file_type,
+                        'file_size' => $a->file_size,
+                        'human_size' => $a->human_size,
+                        'url' => $a->url,
+                    ]),
+                    'user' => [
+                        'id' => $invitation->problemSubmission->user->id,
+                        'name' => $invitation->problemSubmission->user->full_name,
+                        'email' => $invitation->problemSubmission->user->email,
+                        'dev_competency' => $invitation->problemSubmission->user->dev_competency,
+                        'bio' => $invitation->problemSubmission->user->bio,
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Accept a work invitation.
+     */
+    public function acceptInvitation(Request $request, int $id): JsonResponse
+    {
+        $consultant = $request->user()->consultantProfile;
+
+        if (!$consultant) {
+            return response()->json(['message' => 'Consultant profile not found'], 404);
+        }
+
+        $invitation = ConsultantInvitation::where('consultant_id', $consultant->id)
+            ->where('id', $id)
+            ->firstOrFail();
+
+        if ($invitation->status !== 'pending') {
+            return response()->json([
+                'message' => 'This invitation has already been ' . $invitation->status,
+            ], 400);
+        }
+
+        if ($invitation->expires_at && $invitation->expires_at->isPast()) {
+            $invitation->update(['status' => 'expired']);
+            return response()->json([
+                'message' => 'This invitation has expired',
+            ], 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Accept this invitation
+            $invitation->update([
+                'status' => 'accepted',
+                'responded_at' => now(),
+            ]);
+
+            // Update the problem submission status
+            $invitation->problemSubmission->update([
+                'status' => 'matched',
+            ]);
+
+            // Decline all other pending invitations for this problem
+            ConsultantInvitation::where('problem_submission_id', $invitation->problem_submission_id)
+                ->where('id', '!=', $invitation->id)
+                ->where('status', 'pending')
+                ->update([
+                    'status' => 'declined',
+                    'responded_at' => now(),
+                ]);
+
+            AuditLog::log(
+                'invitation_accepted',
+                $request->user()->id,
+                ConsultantInvitation::class,
+                $invitation->id
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Invitation accepted. You can now contact the user to arrange a consultation.',
+                'invitation' => $invitation->fresh(),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to accept invitation'], 500);
+        }
+    }
+
+    /**
+     * Decline a work invitation.
+     */
+    public function declineInvitation(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'reason' => 'sometimes|string|max:500',
+        ]);
+
+        $consultant = $request->user()->consultantProfile;
+
+        if (!$consultant) {
+            return response()->json(['message' => 'Consultant profile not found'], 404);
+        }
+
+        $invitation = ConsultantInvitation::where('consultant_id', $consultant->id)
+            ->where('id', $id)
+            ->firstOrFail();
+
+        if ($invitation->status !== 'pending') {
+            return response()->json([
+                'message' => 'This invitation has already been ' . $invitation->status,
+            ], 400);
+        }
+
+        $invitation->update([
+            'status' => 'declined',
+            'responded_at' => now(),
+            'decline_reason' => $request->reason,
+        ]);
+
+        AuditLog::log(
+            'invitation_declined',
+            $request->user()->id,
+            ConsultantInvitation::class,
+            $invitation->id
+        );
+
+        return response()->json([
+            'message' => 'Invitation declined.',
+        ]);
+    }
+
+    /**
+     * Get consultant's schedule.
+     */
+    public function schedule(Request $request): JsonResponse
+    {
+        $consultant = $request->user()->consultantProfile;
+
+        if (!$consultant) {
+            return response()->json(['message' => 'Consultant profile not found'], 404);
+        }
+
+        // Get upcoming consultations
+        $upcomingConsultations = Consultation::forConsultant($consultant->id)
+            ->whereIn('status', [Consultation::STATUS_SCHEDULED, Consultation::STATUS_IN_PROGRESS])
+            ->with('user')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Get accepted invitations that haven't been scheduled yet
+        $acceptedInvitations = ConsultantInvitation::where('consultant_id', $consultant->id)
+            ->where('status', 'accepted')
+            ->with(['problemSubmission.user'])
+            ->get();
+
+        return response()->json([
+            'upcoming_consultations' => $upcomingConsultations,
+            'accepted_invitations' => $acceptedInvitations->map(fn($inv) => [
+                'id' => $inv->id,
+                'problem_id' => $inv->problem_submission_id,
+                'user' => [
+                    'id' => $inv->problemSubmission->user->id,
+                    'name' => $inv->problemSubmission->user->full_name,
+                ],
+                'accepted_at' => $inv->responded_at,
+                'is_surge' => $inv->is_surge_pricing,
+            ]),
+        ]);
+    }
+
+    /**
+     * Get consultant's calendar data.
+     */
+    public function calendar(Request $request): JsonResponse
+    {
+        $request->validate([
+            'start_date' => 'sometimes|date',
+            'end_date' => 'sometimes|date|after_or_equal:start_date',
+        ]);
+
+        $consultant = $request->user()->consultantProfile;
+
+        if (!$consultant) {
+            return response()->json(['message' => 'Consultant profile not found'], 404);
+        }
+
+        $startDate = $request->start_date ? now()->parse($request->start_date) : now()->startOfMonth();
+        $endDate = $request->end_date ? now()->parse($request->end_date) : now()->endOfMonth();
+
+        // Get consultations within date range
+        $consultations = Consultation::forConsultant($consultant->id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->with('user')
+            ->get();
+
+        // Get availability slots
+        $availability = $consultant->availability()
+            ->active()
+            ->get();
+
+        // Transform to calendar events
+        $events = $consultations->map(fn($c) => [
+            'id' => 'consultation-' . $c->id,
+            'title' => 'Consultation with ' . $c->user->full_name,
+            'start' => $c->started_at ?? $c->created_at,
+            'end' => $c->ended_at ?? ($c->started_at ? $c->started_at->addHour() : $c->created_at->addHour()),
+            'type' => 'consultation',
+            'status' => $c->status,
+            'color' => match($c->status) {
+                'completed' => '#10b981',
+                'in_progress' => '#3b82f6',
+                'scheduled' => '#f59e0b',
+                'cancelled' => '#ef4444',
+                default => '#6b7280',
+            },
+        ]);
+
+        return response()->json([
+            'events' => $events,
+            'availability' => $availability,
+            'date_range' => [
+                'start' => $startDate->toDateString(),
+                'end' => $endDate->toDateString(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get surge pricing settings.
+     */
+    public function surgeSettings(Request $request): JsonResponse
+    {
+        $consultant = $request->user()->consultantProfile;
+
+        if (!$consultant) {
+            return response()->json(['message' => 'Consultant profile not found'], 404);
+        }
+
+        return response()->json([
+            'can_receive_surge_pricing' => $consultant->can_receive_surge_pricing ?? false,
+            'notification_start_time' => $consultant->notification_start_time,
+            'notification_end_time' => $consultant->notification_end_time,
+            'surge_multiplier' => 1.2, // Fixed rate for now
+            'description' => 'When enabled, you may receive work invitations outside your regular hours at 1.2x pay.',
+        ]);
+    }
+
+    /**
+     * Update surge pricing settings.
+     */
+    public function updateSurgeSettings(Request $request): JsonResponse
+    {
+        $request->validate([
+            'can_receive_surge_pricing' => 'required|boolean',
+            'notification_start_time' => 'sometimes|date_format:H:i',
+            'notification_end_time' => 'sometimes|date_format:H:i|after:notification_start_time',
+        ]);
+
+        $consultant = $request->user()->consultantProfile;
+
+        if (!$consultant) {
+            return response()->json(['message' => 'Consultant profile not found'], 404);
+        }
+
+        $consultant->update([
+            'can_receive_surge_pricing' => $request->can_receive_surge_pricing,
+            'notification_start_time' => $request->notification_start_time ?? $consultant->notification_start_time,
+            'notification_end_time' => $request->notification_end_time ?? $consultant->notification_end_time,
+        ]);
+
+        AuditLog::log(
+            'surge_settings_updated',
+            $request->user()->id,
+            Consultant::class,
+            $consultant->id
+        );
+
+        return response()->json([
+            'message' => 'Surge pricing settings updated',
+            'settings' => [
+                'can_receive_surge_pricing' => $consultant->can_receive_surge_pricing,
+                'notification_start_time' => $consultant->notification_start_time,
+                'notification_end_time' => $consultant->notification_end_time,
             ],
         ]);
     }

@@ -322,12 +322,41 @@ export const consultantApi = {
 
   toggleAvailability: () => api.post('/consultant/availability/toggle'),
 
+  // Work Invitations
+  getInvitations: (page = 1) =>
+    api.get('/consultant/invitations', { params: { page } }),
+
+  getInvitation: (id: number) =>
+    api.get(`/consultant/invitations/${id}`),
+
+  acceptInvitation: (id: number) =>
+    api.post(`/consultant/invitations/${id}/accept`),
+
+  declineInvitation: (id: number, reason?: string) =>
+    api.post(`/consultant/invitations/${id}/decline`, { reason }),
+
+  // Legacy requests (kept for compatibility)
   getRequests: (page = 1) =>
     api.get('/consultant/requests', { params: { page } }),
 
   acceptRequest: (id: number) => api.post(`/consultant/requests/${id}/accept`),
 
   declineRequest: (id: number) => api.post(`/consultant/requests/${id}/decline`),
+
+  // Schedule and Calendar
+  getSchedule: () => api.get('/consultant/schedule'),
+
+  getCalendar: (params?: { start_date?: string; end_date?: string }) =>
+    api.get('/consultant/calendar', { params }),
+
+  // Surge Pricing Settings
+  getSurgeSettings: () => api.get('/consultant/surge-settings'),
+
+  updateSurgeSettings: (data: {
+    can_receive_surge_pricing: boolean;
+    notification_start_time?: string;
+    notification_end_time?: string;
+  }) => api.put('/consultant/surge-settings', data),
 
   getEarnings: () => api.get('/consultant/earnings'),
 

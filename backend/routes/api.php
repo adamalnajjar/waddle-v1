@@ -143,9 +143,26 @@ Route::prefix('v1')->group(function () {
             Route::get('/availability', [ConsultantController::class, 'availability']);
             Route::put('/availability', [ConsultantController::class, 'updateAvailability']);
             Route::post('/availability/toggle', [ConsultantController::class, 'toggleAvailability']);
+            
+            // Work invitations
+            Route::get('/invitations', [ConsultantController::class, 'invitations']);
+            Route::get('/invitations/{id}', [ConsultantController::class, 'showInvitation']);
+            Route::post('/invitations/{id}/accept', [ConsultantController::class, 'acceptInvitation']);
+            Route::post('/invitations/{id}/decline', [ConsultantController::class, 'declineInvitation']);
+            
+            // Legacy requests (kept for compatibility)
             Route::get('/requests', [ConsultantController::class, 'requests']);
             Route::post('/requests/{id}/accept', [ConsultantController::class, 'acceptRequest']);
             Route::post('/requests/{id}/decline', [ConsultantController::class, 'declineRequest']);
+            
+            // Schedule
+            Route::get('/schedule', [ConsultantController::class, 'schedule']);
+            Route::get('/calendar', [ConsultantController::class, 'calendar']);
+            
+            // Surge pricing settings
+            Route::get('/surge-settings', [ConsultantController::class, 'surgeSettings']);
+            Route::put('/surge-settings', [ConsultantController::class, 'updateSurgeSettings']);
+            
             Route::get('/earnings', [ConsultantController::class, 'earnings']);
             Route::get('/consultations', [ConsultantController::class, 'consultationHistory']);
         });

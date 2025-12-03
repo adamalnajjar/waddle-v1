@@ -34,6 +34,7 @@ class ConsultantInvitation extends Model
         'invited_by',
         'status',
         'is_surge',
+        'surge_multiplier',
         'invited_at',
         'responded_at',
         'expires_at',
@@ -44,10 +45,19 @@ class ConsultantInvitation extends Model
     {
         return [
             'is_surge' => 'boolean',
+            'surge_multiplier' => 'decimal:2',
             'invited_at' => 'datetime',
             'responded_at' => 'datetime',
             'expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Alias for is_surge to support both naming conventions.
+     */
+    public function getIsSurgePricingAttribute(): bool
+    {
+        return $this->is_surge;
     }
 
     /**

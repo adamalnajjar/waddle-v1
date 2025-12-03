@@ -14,6 +14,8 @@ class Technology extends Model
         'name',
         'slug',
         'icon_url',
+        'category',
+        'is_common',
         'is_active',
         'display_order',
     ];
@@ -22,6 +24,7 @@ class Technology extends Model
     {
         return [
             'is_active' => 'boolean',
+            'is_common' => 'boolean',
             'display_order' => 'integer',
         ];
     }
@@ -46,6 +49,22 @@ class Technology extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope for common technologies.
+     */
+    public function scopeCommon($query)
+    {
+        return $query->where('is_common', true);
+    }
+
+    /**
+     * Scope for technologies by category.
+     */
+    public function scopeCategory($query, string $category)
+    {
+        return $query->where('category', $category);
     }
 
     /**

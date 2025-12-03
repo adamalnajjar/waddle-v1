@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\MassPrunable;
 use Carbon\Carbon;
 
 class ProblemSubmission extends Model
 {
-    use HasFactory;
+    use HasFactory, MassPrunable;
 
     /**
      * Status constants
@@ -126,6 +127,15 @@ class ProblemSubmission extends Model
     {
         return $query->where('status', self::STATUS_DRAFT)
             ->where('draft_expires_at', '<', Carbon::now());
+    }
+
+    /**
+     * Get the prunable model query.
+     * Prunes expired drafts older than the expiry period.
+     */
+    public function prunable()
+    {
+        return static::expiredDrafts();
     }
 
     /**
