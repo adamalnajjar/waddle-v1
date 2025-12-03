@@ -39,12 +39,15 @@ interface ZoomSDKState {
  */
 export const useZoomSDK = ({
   consultationId,
-  userName,
-  userEmail,
+  userName: _userName,
+  userEmail: _userEmail,
   onJoinSuccess,
   onJoinError,
   onMeetingEnd,
 }: UseZoomSDKOptions) => {
+  // These will be used when actual Zoom SDK is integrated
+  void _userName;
+  void _userEmail;
   const [state, setState] = useState<ZoomSDKState>({
     isInitialized: false,
     isJoined: false,
@@ -56,7 +59,9 @@ export const useZoomSDK = ({
     isRecording: false,
   });
 
-  const zoomClientRef = useRef<any>(null);
+  // Will be used when actual Zoom SDK is integrated
+  const _zoomClientRef = useRef<unknown>(null);
+  void _zoomClientRef;
   const mediaStreamRef = useRef<MediaStream | null>(null);
 
   /**
@@ -98,7 +103,9 @@ export const useZoomSDK = ({
     try {
       // Get signature from backend
       const response = await consultationApi.getZoomSignature(consultationId);
-      const { signature, meeting_number, sdk_key, role } = response.data;
+      // These will be used when actual Zoom SDK is integrated
+      const { signature: _signature, meeting_number: _meetingNumber, sdk_key: _sdkKey, role: _role } = response.data;
+      void _signature; void _meetingNumber; void _sdkKey; void _role;
 
       // In production, you would:
       // const client = zoomClientRef.current;

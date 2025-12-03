@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../hooks/useAppDispatch';
 import { questionnaireApi } from '../services/api';
 import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+// Input not currently used
 import { Label } from '../components/ui/Label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../components/ui/Card';
 import { Alert, AlertDescription } from '../components/ui/Alert';
 import { 
   ArrowLeft, 
@@ -13,8 +13,7 @@ import {
   CheckCircle2,
   Code,
   AlertTriangle,
-  Clock,
-  Loader2
+  Clock
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 

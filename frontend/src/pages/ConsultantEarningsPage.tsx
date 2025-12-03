@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { consultantApi } from '../services/api';
-import { Button } from '../components/ui/Button';
+// Button removed - not used in this page
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Alert, AlertDescription } from '../components/ui/Alert';
 import {
@@ -15,7 +15,7 @@ import {
   Calendar,
   User
 } from 'lucide-react';
-import { cn, formatRelativeTime, formatDate } from '../lib/utils';
+import { cn, formatDate } from '../lib/utils';
 
 interface EarningsSummary {
   total_consultations: number;

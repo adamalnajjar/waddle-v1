@@ -136,9 +136,10 @@ export const ConsultantAvailabilityPage: React.FC = () => {
     }
   };
 
-  const getDayName = (dayOfWeek: number) => {
+  const _getDayName = (dayOfWeek: number) => {
     return DAYS_OF_WEEK.find(d => d.value === String(dayOfWeek))?.label || '';
   };
+  void _getDayName; // Reserved for future use
 
   // Group slots by day
   const slotsByDay = slots.reduce((acc, slot, index) => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 const services = [
   { name: 'Web Application', status: 'operational' },

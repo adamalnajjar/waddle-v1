@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { consultantApi } from '../services/api';
 import { Button } from '../components/ui/Button';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Alert, AlertDescription } from '../components/ui/Alert';
 import {
   Users,
@@ -15,7 +15,6 @@ import {
   Play,
   Pause,
   TrendingUp,
-  MessageSquare,
   Video,
   Loader2,
   ArrowRight,
@@ -93,7 +92,7 @@ export const ConsultantDashboardPage: React.FC = () => {
   const handleToggleAvailability = async () => {
     setIsTogglingAvailability(true);
     try {
-      const response = await consultantApi.toggleAvailability();
+      await consultantApi.toggleAvailability();
       setProfile(prev => prev ? { ...prev, is_available: !prev.is_available } : null);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to toggle availability');

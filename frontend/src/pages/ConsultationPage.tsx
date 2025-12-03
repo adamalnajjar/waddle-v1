@@ -32,8 +32,6 @@ import {
   Circle,
   StopCircle,
   FolderOpen,
-  X,
-  Settings,
   Maximize2,
   Minimize2
 } from 'lucide-react';

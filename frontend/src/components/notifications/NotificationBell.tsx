@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, Check, X, Loader2 } from 'lucide-react';
+import { Bell, Loader2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { cn, formatRelativeTime } from '../../lib/utils';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -44,7 +44,6 @@ export const NotificationBell: React.FC = () => {
     isLoading,
     markAsRead,
     markAllAsRead,
-    fetchNotifications,
   } = useNotifications({ autoFetch: true, pollInterval: 30000 });
 
   // Close dropdown when clicking outside

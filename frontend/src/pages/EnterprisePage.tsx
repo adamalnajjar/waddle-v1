@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
-import { ArrowRight, Building2, Shield, Users, Zap, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Building2, Shield, Users, Zap } from 'lucide-react';
 
 export const EnterprisePage: React.FC = () => {
   return (

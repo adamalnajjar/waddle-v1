@@ -3,18 +3,17 @@ import { useAppSelector, useAppDispatch } from '../hooks/useAppDispatch';
 import { updateTokenBalance } from '../features/auth/authSlice';
 import { tokenApi } from '../services/api';
 import { Button } from '../components/ui/Button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
+import { Card, CardContent } from '../components/ui/Card';
 import { Alert, AlertDescription } from '../components/ui/Alert';
 import { 
   Coins, 
   TrendingUp, 
   TrendingDown,
   Clock,
-  CheckCircle2,
   Sparkles,
   ArrowRight
 } from 'lucide-react';
-import { cn, formatCurrency, formatDate, formatRelativeTime } from '../lib/utils';
+import { cn, formatCurrency, formatRelativeTime } from '../lib/utils';
 import type { TokenPackage, TokenTransaction } from '../types';
 
 export const TokensPage: React.FC = () => {

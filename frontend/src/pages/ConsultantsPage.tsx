@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
-import { ArrowRight, DollarSign, Clock, Users, Briefcase, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, DollarSign, Clock, Users, CheckCircle2 } from 'lucide-react';
 
 export const ConsultantsPage: React.FC = () => {
   return (
