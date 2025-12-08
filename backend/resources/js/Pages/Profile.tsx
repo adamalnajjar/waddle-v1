@@ -1,0 +1,255 @@
+import React, { useState } from 'react';
+import { usePage, useForm } from '@inertiajs/react';
+import { Layout } from '@/Components/layout';
+import { Button } from '@/Components/ui/Button';
+import { Input } from '@/Components/ui/Input';
+import { Label } from '@/Components/ui/Label';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/Components/ui/Card';
+import { Alert, AlertDescription } from '@/Components/ui/Alert';
+import { 
+  User, 
+  Mail, 
+  Shield, 
+  Coins, 
+  Calendar,
+  CheckCircle2,
+  AlertTriangle
+} from 'lucide-react';
+import { cn, formatDate } from '@/lib/utils';
+import type { PageProps } from '@/types';
+
+export default function Profile() {
+  const { auth } = usePage<PageProps>().props;
+  const user = auth.user;
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  
+  const { data, setData, patch, processing, errors } = useForm({
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
+    email: user?.email || '',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    patch('/profile', {
+      onSuccess: () => {
+        setSuccess('Profile updated successfully');
+        setIsEditing(false);
+      },
+    });
+  };
+
+  const handleCancel = () => {
+    setData({
+      first_name: user?.first_name || '',
+      last_name: user?.last_name || '',
+      email: user?.email || '',
+    });
+    setIsEditing(false);
+  };
+
+  if (!user) return null;
+
+  return (
+    <Layout>
+      <div className="container py-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold">Profile</h1>
+            <p className="text-muted-foreground mt-1">
+              Manage your account settings and preferences
+            </p>
+          </div>
+
+          {/* Profile Overview */}
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">{user.first_name} {user.last_name}</p>
+                    <p className="text-sm text-muted-foreground capitalize">User</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                    <Coins className="h-6 w-6 text-yellow-500" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">{user.token_balance}</p>
+                    <p className="text-sm text-muted-foreground">Token Balance</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "h-12 w-12 rounded-full flex items-center justify-center",
+                    "bg-green-500/10"
+                  )}>
+                    <CheckCircle2 className="h-6 w-6 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Verified</p>
+                    <p className="text-sm text-muted-foreground">Email Status</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Profile Information */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Personal Information</CardTitle>
+                  <CardDescription>Update your personal details</CardDescription>
+                </div>
+                {!isEditing && (
+                  <Button variant="outline" onClick={() => setIsEditing(true)}>
+                    Edit
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <form onSubmit={handleSubmit}>
+              <CardContent className="space-y-4">
+                {Object.keys(errors).length > 0 && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{Object.values(errors)[0]}</AlertDescription>
+                  </Alert>
+                )}
+                {success && (
+                  <Alert variant="success">
+                    <AlertDescription>{success}</AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name">First Name</Label>
+                    <Input
+                      id="first_name"
+                      value={data.first_name}
+                      onChange={(e) => setData('first_name', e.target.value)}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">Last Name</Label>
+                    <Input
+                      id="last_name"
+                      value={data.last_name}
+                      onChange={(e) => setData('last_name', e.target.value)}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={data.email}
+                      onChange={(e) => setData('email', e.target.value)}
+                      disabled={!isEditing}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Member Since</Label>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>Recently joined</span>
+                  </div>
+                </div>
+              </CardContent>
+              {isEditing && (
+                <CardFooter className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={handleCancel}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" isLoading={processing}>
+                    Save Changes
+                  </Button>
+                </CardFooter>
+              )}
+            </form>
+          </Card>
+
+          {/* Security Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Security
+              </CardTitle>
+              <CardDescription>Manage your security settings</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 rounded-lg border">
+                <div>
+                  <p className="font-medium">Two-Factor Authentication</p>
+                  <p className="text-sm text-muted-foreground">
+                    Add an extra layer of security to your account
+                  </p>
+                </div>
+                <Button variant="default">
+                  Enable
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-lg border">
+                <div>
+                  <p className="font-medium">Change Password</p>
+                  <p className="text-sm text-muted-foreground">
+                    Update your password regularly for better security
+                  </p>
+                </div>
+                <Button variant="outline">Change</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Danger Zone */}
+          <Card className="border-destructive/50">
+            <CardHeader>
+              <CardTitle className="text-destructive">Danger Zone</CardTitle>
+              <CardDescription>Irreversible actions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 rounded-lg border border-destructive/50">
+                <div>
+                  <p className="font-medium">Delete Account</p>
+                  <p className="text-sm text-muted-foreground">
+                    Permanently delete your account and all associated data
+                  </p>
+                </div>
+                <Button variant="destructive">Delete Account</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </Layout>
+  );
+}
