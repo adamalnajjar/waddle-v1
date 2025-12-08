@@ -34,7 +34,7 @@ class TechnologySeeder extends Seeder
             ['name' => 'Go', 'category' => 'backend', 'is_common' => false, 'display_order' => 16],
             ['name' => 'Rust', 'category' => 'backend', 'is_common' => false, 'display_order' => 17],
             ['name' => 'Java', 'category' => 'backend', 'is_common' => false, 'display_order' => 18],
-            ['name' => 'C#', 'category' => 'backend', 'is_common' => false, 'display_order' => 19],
+            ['name' => 'C#', 'slug' => 'csharp', 'category' => 'backend', 'is_common' => false, 'display_order' => 19],
             ['name' => '.NET', 'category' => 'backend', 'is_common' => false, 'display_order' => 20],
 
             // Tier 3 - Additional popular tech
@@ -62,7 +62,7 @@ class TechnologySeeder extends Seeder
             ['name' => 'Electron', 'category' => 'frontend', 'is_common' => false, 'display_order' => 40],
 
             // Tier 5 - Additional
-            ['name' => 'C++', 'category' => 'backend', 'is_common' => false, 'display_order' => 41],
+            ['name' => 'C++', 'slug' => 'cpp', 'category' => 'backend', 'is_common' => false, 'display_order' => 41],
             ['name' => 'Unity', 'category' => 'other', 'is_common' => false, 'display_order' => 42],
             ['name' => 'Unreal Engine', 'category' => 'other', 'is_common' => false, 'display_order' => 43],
             ['name' => 'TensorFlow', 'category' => 'ai_ml', 'is_common' => false, 'display_order' => 44],
@@ -75,14 +75,21 @@ class TechnologySeeder extends Seeder
         ];
 
         foreach ($technologies as $tech) {
+            $data = [
+                'category' => $tech['category'],
+                'is_common' => $tech['is_common'],
+                'display_order' => $tech['display_order'],
+                'is_active' => true,
+            ];
+            
+            // Include explicit slug if provided (for names like C++, C#)
+            if (isset($tech['slug'])) {
+                $data['slug'] = $tech['slug'];
+            }
+            
             Technology::updateOrCreate(
                 ['name' => $tech['name']],
-                [
-                    'category' => $tech['category'],
-                    'is_common' => $tech['is_common'],
-                    'display_order' => $tech['display_order'],
-                    'is_active' => true,
-                ]
+                $data
             );
         }
     }
