@@ -18,9 +18,9 @@ return new class extends Migration
             $table->foreignId('invited_by')->constrained('users')->onDelete('cascade'); // Admin who sent invite
             $table->enum('status', ['pending', 'accepted', 'declined', 'expired'])->default('pending');
             $table->boolean('is_surge')->default(false); // Surge pricing invitation
-            $table->timestamp('invited_at');
+            $table->timestamp('invited_at')->useCurrent();
             $table->timestamp('responded_at')->nullable();
-            $table->timestamp('expires_at'); // 24 hours from invited_at
+            $table->timestamp('expires_at')->useCurrent(); // 24 hours from invited_at
             $table->text('decline_reason')->nullable();
             $table->timestamps();
 
