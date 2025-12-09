@@ -71,12 +71,12 @@ class DatabaseSeeder extends Seeder
             'approved_at' => now(),
         ]);
 
-        // Create subscription plans
+        // Create subscription plans (prices in GBP)
         SubscriptionPlan::create([
             'name' => 'Basic',
             'slug' => 'basic',
             'description' => 'Perfect for occasional consultations',
-            'price' => 9.99,
+            'price' => 7.99,
             'billing_period' => 'monthly',
             'token_discount_percentage' => 5,
             'priority_matching' => false,
@@ -92,7 +92,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Pro',
             'slug' => 'pro',
             'description' => 'For developers who need regular help',
-            'price' => 29.99,
+            'price' => 24.99,
             'billing_period' => 'monthly',
             'token_discount_percentage' => 15,
             'priority_matching' => true,
@@ -109,7 +109,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Enterprise',
             'slug' => 'enterprise',
             'description' => 'For teams and businesses',
-            'price' => 99.99,
+            'price' => 79.99,
             'billing_period' => 'monthly',
             'token_discount_percentage' => 25,
             'priority_matching' => true,
@@ -124,13 +124,13 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        // Create token packages
+        // Create token packages (prices in GBP)
         TokenPackage::create([
             'name' => 'Starter Pack',
             'description' => 'Perfect for trying out the platform',
             'token_amount' => 10,
-            'price' => 9.99,
-            'subscriber_price' => 8.99,
+            'price' => 7.99,
+            'subscriber_price' => 6.99,
             'is_featured' => false,
             'is_active' => true,
             'sort_order' => 1,
@@ -140,8 +140,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Popular Pack',
             'description' => 'Our most popular choice',
             'token_amount' => 50,
-            'price' => 44.99,
-            'subscriber_price' => 39.99,
+            'price' => 35.99,
+            'subscriber_price' => 31.99,
             'is_featured' => true,
             'is_active' => true,
             'sort_order' => 2,
@@ -151,8 +151,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Power Pack',
             'description' => 'Best value for regular users',
             'token_amount' => 100,
-            'price' => 79.99,
-            'subscriber_price' => 69.99,
+            'price' => 63.99,
+            'subscriber_price' => 55.99,
             'is_featured' => false,
             'is_active' => true,
             'sort_order' => 3,
@@ -162,8 +162,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Enterprise Pack',
             'description' => 'For heavy users and teams',
             'token_amount' => 500,
-            'price' => 349.99,
-            'subscriber_price' => 299.99,
+            'price' => 279.99,
+            'subscriber_price' => 239.99,
             'is_featured' => false,
             'is_active' => true,
             'sort_order' => 4,

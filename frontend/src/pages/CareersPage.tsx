@@ -32,7 +32,7 @@ const perks = [
   { icon: Globe, title: 'Remote-first', description: 'Work from anywhere in the world' },
   { icon: Clock, title: 'Flexible hours', description: 'We trust you to manage your time' },
   { icon: Heart, title: 'Health benefits', description: 'Comprehensive health, dental, and vision' },
-  { icon: Zap, title: 'Learning budget', description: '$2,000/year for courses and conferences' },
+  { icon: Zap, title: 'Learning budget', description: '£1,600/year for courses and conferences' },
 ];
 
 export const CareersPage: React.FC = () => {

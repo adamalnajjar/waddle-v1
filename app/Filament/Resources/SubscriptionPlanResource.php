@@ -41,7 +41,7 @@ class SubscriptionPlanResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('price')
                             ->numeric()
-                            ->prefix('$')
+                            ->prefix('£')
                             ->required(),
                         Forms\Components\Select::make('billing_period')
                             ->options([
@@ -88,7 +88,7 @@ class SubscriptionPlanResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
-                    ->money('USD')
+                    ->money('GBP')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('billing_period')
                     ->badge(),

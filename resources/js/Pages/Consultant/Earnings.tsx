@@ -73,8 +73,8 @@ export default function ConsultantEarnings() {
                   <DollarSign className="h-6 w-6 text-amber-500" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">$0</p>
-                  <p className="text-sm text-muted-foreground">Lifetime (USD)</p>
+                  <p className="text-2xl font-bold">£0</p>
+                  <p className="text-sm text-muted-foreground">Lifetime (GBP)</p>
                 </div>
               </div>
             </CardContent>

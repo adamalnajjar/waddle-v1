@@ -26,6 +26,7 @@ export const RegisterPage: React.FC = () => {
     role: 'user' as 'user' | 'consultant',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const passwordRequirements = [
     { label: 'At least 8 characters', test: (p: string) => p.length >= 8 },
@@ -223,21 +224,34 @@ export const RegisterPage: React.FC = () => {
 
             <div className="space-y-2">
               <Label htmlFor="password_confirmation">Confirm Password</Label>
-              <Input
-                id="password_confirmation"
-                name="password_confirmation"
-                type="password"
-                placeholder="••••••••"
-                value={formData.password_confirmation}
-                onChange={handleChange}
-                error={
-                  formData.password_confirmation &&
-                  formData.password !== formData.password_confirmation
-                    ? "Passwords don't match"
-                    : undefined
-                }
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password_confirmation"
+                  name="password_confirmation"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={formData.password_confirmation}
+                  onChange={handleChange}
+                  error={
+                    formData.password_confirmation &&
+                    formData.password !== formData.password_confirmation
+                      ? "Passwords don't match"
+                      : undefined
+                  }
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">

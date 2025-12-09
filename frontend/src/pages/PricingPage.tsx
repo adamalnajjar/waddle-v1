@@ -59,11 +59,11 @@ const FaqItem: React.FC<{ question: string; answer: string }> = ({ question, ans
 };
 
 const tokenPackages = [
-  { tokens: 25, price: 50, perToken: 2.00, popular: false },
-  { tokens: 50, price: 90, perToken: 1.80, popular: false },
-  { tokens: 100, price: 160, perToken: 1.60, popular: true },
-  { tokens: 250, price: 350, perToken: 1.40, popular: false },
-  { tokens: 500, price: 600, perToken: 1.20, popular: false },
+  { tokens: 25, price: 40, perToken: 1.60, popular: false },
+  { tokens: 50, price: 72, perToken: 1.44, popular: false },
+  { tokens: 100, price: 128, perToken: 1.28, popular: true },
+  { tokens: 250, price: 280, perToken: 1.12, popular: false },
+  { tokens: 500, price: 480, perToken: 0.96, popular: false },
 ];
 
 export const PricingPage: React.FC = () => {
@@ -76,7 +76,7 @@ export const PricingPage: React.FC = () => {
   };
 
   const selected = tokenPackages[selectedPackage];
-  const basePrice = selected.tokens * 2.00; // Base price at $2/token
+  const basePrice = selected.tokens * 1.60; // Base price at £1.60/token
   const savings = basePrice - selected.price;
 
   return (
@@ -152,9 +152,9 @@ export const PricingPage: React.FC = () => {
                     <Coins className="h-5 w-5 text-primary" />
                     <span className="text-2xl font-bold text-foreground">{pkg.tokens}</span>
                   </div>
-                  <div className="text-xl font-semibold mb-1 text-foreground">${pkg.price}</div>
+                  <div className="text-xl font-semibold mb-1 text-foreground">£{pkg.price}</div>
                   <div className="text-sm text-muted-foreground">
-                    ${pkg.perToken.toFixed(2)}/token
+                    £{pkg.perToken.toFixed(2)}/token
                   </div>
                 </button>
               ))}
@@ -173,12 +173,12 @@ export const PricingPage: React.FC = () => {
                   </div>
                   {savings > 0 && (
                     <div className="text-green-600 dark:text-green-400 text-sm font-medium mt-2">
-                      Save ${savings.toFixed(0)} compared to base rate
+                      Save £{savings.toFixed(0)} compared to base rate
                     </div>
                   )}
                 </div>
                 <div className="text-right">
-                  <div className="text-4xl font-bold text-foreground">${selected.price}</div>
+                  <div className="text-4xl font-bold text-foreground">£{selected.price}</div>
                   <Button size="lg" className="mt-4" onClick={handleGetStarted}>
                     Get Tokens
                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -259,7 +259,7 @@ export const PricingPage: React.FC = () => {
               {/* Freelancer */}
               <div className="bg-card border border-border rounded-2xl p-6">
                 <div className="text-sm font-medium text-muted-foreground mb-2">Freelancer</div>
-                <div className="text-3xl font-bold mb-1 text-foreground">$100–300</div>
+                <div className="text-3xl font-bold mb-1 text-foreground">£80–240</div>
                 <p className="text-sm text-muted-foreground mb-6">
                   Minimum project fee
                 </p>
@@ -282,7 +282,7 @@ export const PricingPage: React.FC = () => {
               {/* Agency */}
               <div className="bg-card border border-border rounded-2xl p-6">
                 <div className="text-sm font-medium text-muted-foreground mb-2">Agency</div>
-                <div className="text-3xl font-bold mb-1 text-foreground">$500+</div>
+                <div className="text-3xl font-bold mb-1 text-foreground">£400+</div>
                 <p className="text-sm text-muted-foreground mb-6">
                   Minimum engagement
                 </p>
