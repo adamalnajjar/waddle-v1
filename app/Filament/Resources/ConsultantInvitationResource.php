@@ -81,9 +81,12 @@ class ConsultantInvitationResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('problemSubmission.id')
                     ->label('Problem')
-                    ->formatStateUsing(fn ($state) => "#{$state}")
-                    ->url(fn ($record) => ProblemSubmissionResource::getUrl('view', ['record' => $record->problem_submission_id]))
-                    ->color('primary'),
+                    ->formatStateUsing(fn ($state) => $state ? "Problem #{$state}" : '-')
+                    ->visible(fn ($record) => $record->problem_submission_id !== null),
+                Tables\Columns\TextColumn::make('consultationRequest.id')
+                    ->label('Consultation')
+                    ->formatStateUsing(fn ($state) => $state ? "Request #{$state}" : '-')
+                    ->visible(fn ($record) => $record->consultation_request_id !== null),
                 Tables\Columns\TextColumn::make('consultant.user.full_name')
                     ->label('Consultant')
                     ->searchable(['first_name', 'last_name']),

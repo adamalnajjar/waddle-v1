@@ -14,7 +14,12 @@ class ConsultationRequest extends Model
 
     public const STATUS_PENDING = 'pending';
     public const STATUS_MATCHING = 'matching';
+    public const STATUS_INVITED = 'invited';
     public const STATUS_MATCHED = 'matched';
+    public const STATUS_TIME_PROPOSED = 'time_proposed';
+    public const STATUS_TIME_COUNTER_PROPOSED = 'time_counter_proposed';
+    public const STATUS_SCHEDULED = 'scheduled';
+    public const STATUS_READY = 'ready';
     public const STATUS_IN_PROGRESS = 'in_progress';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
@@ -32,6 +37,17 @@ class ConsultationRequest extends Model
         'shuffle_count',
         'excluded_consultants',
         'matched_at',
+        'proposed_time',
+        'counter_proposed_time',
+        'counter_proposal_reason',
+        'proposal_rounds',
+        'agreed_time',
+        'user_confirmed',
+        'consultant_confirmed',
+        'zoom_meeting_id',
+        'zoom_join_url',
+        'zoom_password',
+        'zoom_created_at',
     ];
 
     protected function casts(): array
@@ -42,6 +58,13 @@ class ConsultationRequest extends Model
             'excluded_consultants' => 'array',
             'shuffle_count' => 'integer',
             'matched_at' => 'datetime',
+            'proposed_time' => 'datetime',
+            'counter_proposed_time' => 'datetime',
+            'agreed_time' => 'datetime',
+            'zoom_created_at' => 'datetime',
+            'user_confirmed' => 'boolean',
+            'consultant_confirmed' => 'boolean',
+            'proposal_rounds' => 'integer',
         ];
     }
 

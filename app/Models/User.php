@@ -175,6 +175,14 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
     }
 
     /**
+     * Alias for consultantProfile for easier access.
+     */
+    public function consultant()
+    {
+        return $this->consultantProfile();
+    }
+
+    /**
      * Get the subscription associated with the user.
      */
     public function subscription()

@@ -23,6 +23,36 @@ import {
 import { cn } from '@/lib/utils.ts';
 import type { PageProps } from '@/types';
 
+interface ConsultantInvitation {
+  id: number;
+  status: string;
+  invited_at: string;
+  expires_at: string;
+  is_surge: boolean;
+  consultation_request: {
+    id: number;
+    problem_description: string;
+    tech_stack: string[];
+    user: {
+      id: number;
+      full_name: string;
+      email: string;
+    };
+  };
+}
+
+interface ScheduledConsultation {
+  id: number;
+  status: string;
+  agreed_time: string;
+  user: {
+    id: number;
+    full_name: string;
+  };
+  problem_description: string;
+  tech_stack: string[];
+}
+
 interface DashboardStats {
   pending_requests: number;
   active_consultations: number;
@@ -58,6 +88,8 @@ interface Review {
 
 interface ConsultantDashboardProps extends PageProps {
   stats?: DashboardStats;
+  pending_invitations?: ConsultantInvitation[];
+  scheduled_consultations?: ScheduledConsultation[];
   active_consultations?: ActiveConsultation[];
   recent_reviews?: Review[];
   profile?: {
@@ -69,6 +101,8 @@ interface ConsultantDashboardProps extends PageProps {
 export default function ConsultantDashboard() {
   const {
     stats,
+    pending_invitations = [],
+    scheduled_consultations = [],
     active_consultations = [],
     recent_reviews = [],
     profile
@@ -242,6 +276,155 @@ export default function ConsultantDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Pending Invitations */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Pending Invitations
+                </CardTitle>
+                {pending_invitations.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.visit('/consultant/invitations')}
+                  >
+                    View All
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {pending_invitations.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    No pending invitations
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    New consultation requests will appear here
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pending_invitations.slice(0, 3).map((invitation) => (
+                    <div
+                      key={invitation.id}
+                      className="p-4 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <p className="font-medium">{invitation.consultation_request.user.full_name}</p>
+                          <p className="text-xs text-muted-foreground">{invitation.consultation_request.user.email}</p>
+                        </div>
+                        {invitation.is_surge && (
+                          <span className="px-2 py-1 rounded-full bg-warning/10 text-warning text-xs font-medium">
+                            Surge 1.2x
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                        {invitation.consultation_request.problem_description}
+                      </p>
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {invitation.consultation_request.tech_stack.slice(0, 3).map((tech) => (
+                          <span key={tech} className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-xs">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3 inline mr-1" />
+                          {formatRelativeTime(invitation.invited_at)}
+                        </span>
+                        <Button
+                          size="sm"
+                          onClick={() => router.visit('/consultant/invitations')}
+                        >
+                          Respond
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Scheduled Consultations */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Upcoming Sessions
+                </CardTitle>
+                {scheduled_consultations.length > 0 && (
+                  <span className="text-sm text-muted-foreground">
+                    {scheduled_consultations.length} scheduled
+                  </span>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {scheduled_consultations.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    No upcoming sessions
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Accepted consultations will appear here
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {scheduled_consultations.slice(0, 3).map((consultation) => (
+                    <div
+                      key={consultation.id}
+                      className="p-4 rounded-lg border bg-muted/30"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <p className="font-medium">{consultation.user.full_name}</p>
+                        <span className={cn(
+                          "px-2 py-1 rounded-full text-xs font-medium",
+                          consultation.status === 'ready'
+                            ? "bg-green-500/10 text-green-600"
+                            : "bg-blue-500/10 text-blue-600"
+                        )}>
+                          {consultation.status === 'ready' ? 'Ready' : 'Scheduled'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-1 mb-2">
+                        {consultation.problem_description}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(consultation.agreed_time).toLocaleString()}
+                        </span>
+                        {consultation.status === 'ready' && (
+                          <Button
+                            size="sm"
+                            onClick={() => router.visit(`/consultations/${consultation.id}/meeting`)}
+                          >
+                            <Video className="h-4 w-4 mr-1" />
+                            Join Now
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Active Consultations */}
           <Card>
             <CardHeader>
@@ -361,14 +544,14 @@ export default function ConsultantDashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => router.visit('/consultant/work')}>
+          <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => router.visit('/consultant/invitations')}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Users className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium">View Requests</p>
+                  <p className="font-medium">View Invitations</p>
                   <p className="text-sm text-muted-foreground">
                     {stats?.pending_requests || 0} pending
                   </p>

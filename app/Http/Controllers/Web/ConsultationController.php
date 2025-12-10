@@ -76,6 +76,84 @@ class ConsultationController extends Controller
     }
 
     /**
+     * Accept the proposed time from consultant.
+     */
+    public function acceptProposedTime(Request $request, ConsultationRequest $consultationRequest)
+    {
+        $user = $request->user();
+
+        // Verify ownership
+        if ($consultationRequest->user_id !== $user->id) {
+            abort(403, 'You are not authorized to accept this time.');
+        }
+
+        // Verify status
+        if ($consultationRequest->status !== ConsultationRequest::STATUS_TIME_PROPOSED) {
+            return back()->withErrors(['error' => 'This consultation is not awaiting time acceptance.']);
+        }
+
+        // Update consultation request
+        $consultationRequest->update([
+            'status' => ConsultationRequest::STATUS_SCHEDULED,
+            'agreed_time' => $consultationRequest->proposed_time,
+            'user_confirmed' => true,
+            'consultant_confirmed' => true,
+        ]);
+
+        // Create Consultation record (for tracking the actual meeting)
+        Consultation::create([
+            'consultation_request_id' => $consultationRequest->id,
+            'user_id' => $consultationRequest->user_id,
+            'consultant_id' => $consultationRequest->matched_consultant_id,
+            'scheduled_at' => $consultationRequest->agreed_time,
+            'duration_minutes' => 60, // Default duration
+            'status' => Consultation::STATUS_SCHEDULED,
+        ]);
+
+        // TODO: Send notification to consultant
+
+        return back()->with('success', 'Time accepted! Your consultation has been scheduled.');
+    }
+
+    /**
+     * Counter-propose a different time.
+     */
+    public function counterProposeTime(Request $request, ConsultationRequest $consultationRequest)
+    {
+        $user = $request->user();
+
+        // Verify ownership
+        if ($consultationRequest->user_id !== $user->id) {
+            abort(403, 'You are not authorized to counter-propose for this consultation.');
+        }
+
+        // Verify status
+        if (!in_array($consultationRequest->status, [
+            ConsultationRequest::STATUS_TIME_PROPOSED,
+            ConsultationRequest::STATUS_TIME_COUNTER_PROPOSED,
+        ])) {
+            return back()->withErrors(['error' => 'This consultation is not in a state to counter-propose time.']);
+        }
+
+        $validated = $request->validate([
+            'counter_proposed_time' => ['required', 'date', 'after:now'],
+            'counter_proposal_reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        // Update consultation request
+        $consultationRequest->update([
+            'status' => ConsultationRequest::STATUS_TIME_COUNTER_PROPOSED,
+            'counter_proposed_time' => $validated['counter_proposed_time'],
+            'counter_proposal_reason' => $validated['counter_proposal_reason'] ?? null,
+            'proposal_rounds' => $consultationRequest->proposal_rounds + 1,
+        ]);
+
+        // TODO: Send notification to consultant
+
+        return back()->with('success', 'Your counter-proposal has been sent to the consultant.');
+    }
+
+    /**
      * Display a specific consultation.
      */
     public function show(Consultation $consultation)

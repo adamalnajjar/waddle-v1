@@ -85,7 +85,7 @@ class ZoomService
                             'approval_type' => 0,
                             'audio' => 'both',
                             'auto_recording' => 'cloud',
-                            'waiting_room' => false, // Disable waiting room for easier joining
+                            'waiting_room' => true, // Enable Zoom's native waiting room
                             'allow_multiple_devices' => false,
                             'meeting_authentication' => false, // Disable authentication requirement
                         ],

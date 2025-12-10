@@ -30,6 +30,7 @@ class ConsultantInvitation extends Model
 
     protected $fillable = [
         'problem_submission_id',
+        'consultation_request_id',
         'consultant_id',
         'invited_by',
         'status',
@@ -39,6 +40,8 @@ class ConsultantInvitation extends Model
         'responded_at',
         'expires_at',
         'decline_reason',
+        'proposed_time',
+        'proposal_message',
     ];
 
     protected function casts(): array
@@ -49,6 +52,7 @@ class ConsultantInvitation extends Model
             'invited_at' => 'datetime',
             'responded_at' => 'datetime',
             'expires_at' => 'datetime',
+            'proposed_time' => 'datetime',
         ];
     }
 
@@ -83,6 +87,14 @@ class ConsultantInvitation extends Model
     public function problemSubmission()
     {
         return $this->belongsTo(ProblemSubmission::class);
+    }
+
+    /**
+     * Get the consultation request.
+     */
+    public function consultationRequest()
+    {
+        return $this->belongsTo(ConsultationRequest::class);
     }
 
     /**

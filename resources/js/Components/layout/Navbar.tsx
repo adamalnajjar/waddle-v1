@@ -63,7 +63,7 @@ export const Navbar: React.FC = () => {
         <div className="container">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <Link href="/public" className="flex items-center gap-3 group">
+            <Link href={auth.user ? "/dashboard" : "/"} className="flex items-center gap-3 group">
               <div className="relative">
                 <img
                   src="/images/waddle-logo.svg"

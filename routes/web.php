@@ -61,9 +61,17 @@ Route::middleware('guest')->group(function () {
 // Authenticated routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    
-    // Dashboard
+
+    // Dashboard - redirect based on role
     Route::get('/dashboard', function () {
+        $user = auth()->user();
+        
+        if ($user->role === 'consultant') {
+            return redirect()->route('consultant.dashboard');
+        } elseif ($user->role === 'admin') {
+            return redirect('/admin');
+        }
+        
         return Inertia::render('Dashboard');
     })->name('dashboard');
     
@@ -93,6 +101,8 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('NewConsultation');
     })->name('consultations.new');
     Route::post('/consultations', [ConsultationController::class, 'store'])->name('consultations.store');
+    Route::post('/consultations/{consultationRequest}/accept-time', [ConsultationController::class, 'acceptProposedTime'])->name('consultations.accept-time');
+    Route::post('/consultations/{consultationRequest}/counter-time', [ConsultationController::class, 'counterProposeTime'])->name('consultations.counter-time');
     Route::get('/consultations/{consultation}', [ConsultationController::class, 'show'])->name('consultations.show');
     Route::get('/consultations/{consultation}/meeting', [ConsultationController::class, 'meeting'])->name('consultations.meeting');
     
@@ -104,12 +114,13 @@ Route::middleware('auth')->group(function () {
 
 // Consultant routes
 Route::middleware(['auth', 'role:consultant'])->prefix('consultant')->group(function () {
-    Route::get('/', function () {
-        return Inertia::render('Consultant/Dashboard');
-    })->name('consultant.dashboard');
+    Route::get('/', [ConsultantController::class, 'index'])->name('consultant.dashboard');
     
     Route::post('/toggle-availability', [ConsultantController::class, 'toggleAvailability'])
         ->name('consultant.toggle-availability');
+    
+    Route::get('/invitations', [ConsultantController::class, 'showInvitations'])
+        ->name('consultant.invitations');
     
     Route::get('/work', function () {
         return Inertia::render('Consultant/Work');

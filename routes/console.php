@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\CreateZoomMeetingJob;
 use App\Jobs\ExpireInvitationsJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -12,6 +13,12 @@ Artisan::command('inspire', function () {
 // Schedule invitation expiry job to run every hour
 Schedule::job(new ExpireInvitationsJob)->hourly()
     ->name('expire-invitations')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// Schedule Zoom meeting creation job to run every minute
+Schedule::job(new CreateZoomMeetingJob)->everyMinute()
+    ->name('create-zoom-meetings')
     ->withoutOverlapping()
     ->onOneServer();
 
