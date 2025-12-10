@@ -94,6 +94,7 @@ Route::middleware('auth')->group(function () {
     })->name('consultations.new');
     Route::post('/consultations', [ConsultationController::class, 'store'])->name('consultations.store');
     Route::get('/consultations/{consultation}', [ConsultationController::class, 'show'])->name('consultations.show');
+    Route::get('/consultations/{consultation}/meeting', [ConsultationController::class, 'meeting'])->name('consultations.meeting');
     
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');

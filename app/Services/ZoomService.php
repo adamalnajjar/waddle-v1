@@ -78,16 +78,18 @@ class ZoomService
                         'settings' => [
                             'host_video' => true,
                             'participant_video' => true,
-                            'join_before_host' => false,
+                            'join_before_host' => true, // Allow participants to join before host
                             'mute_upon_entry' => false,
                             'watermark' => false,
                             'use_pmi' => false,
                             'approval_type' => 0,
                             'audio' => 'both',
                             'auto_recording' => 'cloud',
-                            'waiting_room' => true,
+                            'waiting_room' => false, // Disable waiting room for easier joining
                             'allow_multiple_devices' => false,
+                            'meeting_authentication' => false, // Disable authentication requirement
                         ],
+                        'password' => '', // Explicitly set no password
                     ]);
 
                 if ($response->successful()) {
@@ -225,14 +227,23 @@ class ZoomService
         $iat = time();
         $exp = $iat + 60 * 60 * 2; // 2 hours
 
+        // For Meeting SDK, use ONLY sdkKey (not appKey)
         $payload = [
             'sdkKey' => $sdkKey,
-            'mn' => $meetingNumber,
-            'role' => $role, // 0 = participant, 1 = host
+            'mn' => (string) $meetingNumber,
+            'role' => (int) $role,
             'iat' => $iat,
             'exp' => $exp,
             'tokenExp' => $exp,
         ];
+
+        // Log for debugging
+        Log::info('Generating Zoom signature', [
+            'meeting_number' => $meetingNumber,
+            'role' => $role,
+            'sdk_key' => substr($sdkKey, 0, 8) . '...',
+            'payload' => $payload,
+        ]);
 
         $header = json_encode(['alg' => 'HS256', 'typ' => 'JWT']);
         $payload = json_encode($payload);
@@ -243,7 +254,11 @@ class ZoomService
         $signature = hash_hmac('sha256', $base64Header . '.' . $base64Payload, $sdkSecret, true);
         $base64Signature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
 
-        return $base64Header . '.' . $base64Payload . '.' . $base64Signature;
+        $jwt = $base64Header . '.' . $base64Payload . '.' . $base64Signature;
+        
+        Log::info('Generated signature', ['jwt_preview' => substr($jwt, 0, 50) . '...']);
+
+        return $jwt;
     }
 }
 

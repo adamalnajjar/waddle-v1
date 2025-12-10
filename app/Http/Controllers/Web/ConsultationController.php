@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Consultation;
 use App\Models\ConsultationRequest;
+use App\Services\ZoomService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class ConsultationController extends Controller
@@ -87,6 +89,80 @@ class ConsultationController extends Controller
 
         return Inertia::render('Consultation/Show', [
             'consultation' => $consultation,
+        ]);
+    }
+
+    /**
+     * Display the Zoom meeting page for a consultation.
+     */
+    public function meeting(Consultation $consultation, ZoomService $zoomService)
+    {
+        $user = request()->user();
+        
+        // Authorization check - user or consultant can access
+        $isUser = $consultation->user_id === $user->id;
+        $isConsultant = $consultation->consultant_id === optional($user->consultant)->id;
+        
+        if (!$isUser && !$isConsultant) {
+            abort(403, 'You are not authorized to join this meeting.');
+        }
+
+        // Check consultation has a meeting
+        if (!$consultation->zoom_meeting_id) {
+            return redirect()->route('consultations.show', $consultation)
+                ->with('error', 'No meeting is available for this consultation yet.');
+        }
+
+        // Check consultation status allows joining
+        $allowedStatuses = [
+            Consultation::STATUS_SCHEDULED,
+            Consultation::STATUS_IN_PROGRESS,
+        ];
+        
+        if (!in_array($consultation->status, $allowedStatuses)) {
+            return redirect()->route('consultations.show', $consultation)
+                ->with('error', 'This consultation is not currently active.');
+        }
+
+        $consultation->load(['user', 'consultant.user']);
+
+        // Role: 0 = participant (user), 1 = host (consultant)
+        $role = $isConsultant ? 1 : 0;
+
+        // Generate Zoom SDK signature
+        $signature = $zoomService->generateSignature($consultation->zoom_meeting_id, $role);
+
+        Log::info('Meeting page accessed', [
+            'consultation_id' => $consultation->id,
+            'meeting_id' => $consultation->zoom_meeting_id,
+            'password' => $consultation->zoom_password,
+            'role' => $role,
+        ]);
+
+        return Inertia::render('Consultation/Meeting', [
+            'consultation' => [
+                'id' => $consultation->id,
+                'zoom_meeting_id' => $consultation->zoom_meeting_id,
+                'zoom_join_url' => $consultation->zoom_join_url,
+                'status' => $consultation->status,
+                'user' => [
+                    'id' => $consultation->user->id,
+                    'full_name' => $consultation->user->full_name,
+                ],
+                'consultant' => [
+                    'id' => $consultation->consultant->id,
+                    'user' => [
+                        'full_name' => $consultation->consultant->user->full_name,
+                    ],
+                ],
+            ],
+            'signature' => $signature,
+            'sdkKey' => config('services.zoom.sdk_key'), // Pass SDK Key to frontend
+            'meetingNumber' => $consultation->zoom_meeting_id,
+            'password' => $consultation->zoom_password ?? '', // Pass meeting password
+            'userName' => $user->full_name,
+            'userEmail' => $user->email,
+            'role' => $role,
         ]);
     }
 }
