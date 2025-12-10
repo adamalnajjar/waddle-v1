@@ -14,7 +14,7 @@ class TokenPackageResource extends Resource
 {
     protected static ?string $model = TokenPackage::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
+    protected static ?string $navigationIcon = 'heroicon-o-currency-pound';
 
     protected static ?string $navigationGroup = 'Billing';
 
@@ -42,12 +42,12 @@ class TokenPackageResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('price')
                             ->numeric()
-                            ->prefix('$')
+                            ->prefix('£')
                             ->required()
                             ->label('Regular Price'),
                         Forms\Components\TextInput::make('subscriber_price')
                             ->numeric()
-                            ->prefix('$')
+                            ->prefix('£')
                             ->label('Subscriber Price')
                             ->helperText('Leave empty to use regular price'),
                         Forms\Components\TextInput::make('stripe_price_id')
@@ -83,14 +83,14 @@ class TokenPackageResource extends Resource
                     ->label('Tokens')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
-                    ->money('USD')
+                    ->money('GBP')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('subscriber_price')
-                    ->money('USD')
+                    ->money('GBP')
                     ->label('Sub. Price')
                     ->placeholder('-'),
                 Tables\Columns\TextColumn::make('price_per_token')
-                    ->label('$/Token')
+                    ->label('£/Token')
                     ->getStateUsing(fn ($record) => $record->token_amount > 0 ? number_format($record->price / $record->token_amount, 3) : 0),
                 Tables\Columns\IconColumn::make('is_featured')
                     ->boolean()

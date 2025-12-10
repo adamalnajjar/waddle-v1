@@ -25,6 +25,7 @@ class Consultation extends Model
         'zoom_meeting_id',
         'zoom_join_url',
         'zoom_start_url',
+        'zoom_password',
         'status',
         'started_at',
         'ended_at',

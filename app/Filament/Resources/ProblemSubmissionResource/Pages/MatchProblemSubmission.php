@@ -11,17 +11,18 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
+use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class MatchProblemSubmission extends Page
 {
+    use InteractsWithRecord;
+
     protected static string $resource = ProblemSubmissionResource::class;
 
     protected static string $view = 'filament.resources.problem-submission-resource.pages.match-problem-submission';
 
-    public ProblemSubmission $record;
-    
     public ?array $selectedConsultants = [];
     
     public Collection $suggestedConsultants;
@@ -30,7 +31,10 @@ class MatchProblemSubmission extends Page
 
     public function mount(int | string $record): void
     {
-        $this->record = ProblemSubmission::with(['user', 'technologies', 'attachments'])->findOrFail($record);
+        $this->record = $this->resolveRecord($record);
+        
+        // Load relationships
+        $this->record->load(['user', 'technologies', 'attachments']);
         
         // Get algorithm-suggested consultants
         $matchingService = app(ConsultantMatchingService::class);
